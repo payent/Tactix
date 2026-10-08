@@ -2,7 +2,7 @@
 "use strict";
 
 // ============================================
-// TACTIX 0.7 — LABORATOIRE TACTIQUE
+// TACTIX 0.9 — LABORATOIRE TACTIQUE
 // Personnalisation des joueurs
 // Compatible avec les carnets TACTIX 0.6
 // ============================================
@@ -101,6 +101,87 @@ function refreshPlayerSelect() {
   }
 }
 
+// TACTIX 0.9 — Compositions automatiques (gardien + lignes de jeu).
+// Les noms, numéros, couleurs et tactiques enregistrées sont conservés.
+const formationsByMode = {
+  8: {
+    "2-3-2": [2, 3, 2],
+    "3-3-1": [3, 3, 1],
+    "3-2-2": [3, 2, 2]
+  },
+  11: {
+    "4-3-3": [4, 3, 3],
+    "4-4-2": [4, 4, 2],
+    "3-5-2": [3, 5, 2]
+  }
+};
+
+const formationSelect = document.createElement("select");
+formationSelect.id = "tactix-formation-select";
+formationSelect.setAttribute("aria-label", "Choisir une composition tactique");
+formationSelect.style.cssText = "padding:9px 12px;border-radius:8px;background:#142923;color:#fff;border:1px solid #7cf0ad;max-width:100%;font:inherit;cursor:pointer";
+
+const formationLabel = document.createElement("label");
+formationLabel.htmlFor = formationSelect.id;
+formationLabel.textContent = "Composition : ";
+formationLabel.style.cssText = "display:inline-flex;align-items:center;gap:9px;flex-wrap:wrap;font-weight:700;margin:8px 0";
+formationLabel.appendChild(formationSelect);
+
+const formationButton = document.createElement("button");
+formationButton.type = "button";
+formationButton.textContent = "Placer les joueurs";
+formationButton.className = "drawing-tool";
+formationButton.style.margin = "8px";
+
+const formationToolbar = document.createElement("div");
+formationToolbar.style.cssText = "display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:12px 0";
+formationToolbar.appendChild(formationLabel);
+formationToolbar.appendChild(formationButton);
+
+if (mode8Button && mode8Button.parentElement) {
+  mode8Button.parentElement.insertAdjacentElement("afterend", formationToolbar);
+} else if (pitch && pitch.parentElement) {
+  pitch.parentElement.insertBefore(formationToolbar, pitch);
+}
+
+function refreshFormations() {
+  formationSelect.innerHTML = "";
+  Object.keys(formationsByMode[currentMode]).forEach(name => {
+    const option = document.createElement("option");
+    option.value = name;
+    option.textContent = name;
+    formationSelect.appendChild(option);
+  });
+}
+
+function applyFormation() {
+  const lines = formationsByMode[currentMode][formationSelect.value];
+  if (!lines || players.length !== currentMode) return;
+
+  // Les lignes vont de la défense vers l'attaque ; le gardien reste en bas.
+  const yByLine = [74, 53, 29];
+  const positions = [{ x: 50, y: 91 }];
+  lines.forEach((count, lineIndex) => {
+    for (let index = 0; index < count; index++) {
+      positions.push({
+        x: 100 * (index + 1) / (count + 1),
+        y: yByLine[lineIndex]
+      });
+    }
+  });
+
+  players = players.map((player, index) => ({
+    ...player,
+    x: positions[index].x,
+    y: positions[index].y
+  }));
+  renderPlayers();
+  updatePlayerEditor();
+  // Le carnet ne change que lorsque l'utilisateur clique sur Enregistrer.
+}
+
+formationButton.addEventListener("click", applyFormation);
+
 function changeMode(mode) {
   if (mode !== 8 && mode !== 11) return;
   if (mode === currentMode) return;
@@ -134,6 +215,7 @@ function changeMode(mode) {
   drawingPointerId = null;
   selectedPlayerId = 1;
   refreshPlayerSelect();
+  refreshFormations();
   updateModeButtons();
   renderPlayers();
   renderDrawings();
@@ -1885,6 +1967,7 @@ restoreFileInput.addEventListener("change", event => {
 
 loadNotebook();
 refreshPlayerSelect();
+refreshFormations();
 updateModeButtons();
 if (mode8Button) mode8Button.addEventListener("click", () => changeMode(8));
 if (mode11Button) mode11Button.addEventListener("click", () => changeMode(11));
