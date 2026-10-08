@@ -760,30 +760,22 @@ function renderPlayers() {
 // TACTIX 0.11 — Deux directions de courbure, sans modifier index.html.
 const curvedCrossButtons = [
   { tool: "curve-left", label: "↶ Centre courbé gauche" },
-  { tool: "curve-right", label: "↷ Centre courbé droite" }
+  { tool: "curve-right", label: "↷ Centre courbé droit" }
 ].map(({ tool, label }) => {
+  const existing = document.querySelector(`.drawing-tool[data-tool="${tool}"]`);
+  if (existing) return existing;
   const button = document.createElement("button");
   button.type = "button";
   button.className = "drawing-tool";
   button.dataset.tool = tool;
   button.textContent = label;
   button.setAttribute("aria-pressed", "false");
-  button.title = "Tracer un centre avec une courbure vers " +
-    (tool === "curve-left" ? "la gauche" : "la droite");
+  const lastToolButton = document.querySelector(".drawing-tool[data-tool='zone']") ||
+    document.querySelector(".drawing-tool[data-tool='pass']");
+  if (lastToolButton) lastToolButton.insertAdjacentElement("afterend", button);
   return button;
 });
-
-const lastToolButton = toolButtons[toolButtons.length - 1];
-if (lastToolButton && lastToolButton.parentElement) {
-  lastToolButton.insertAdjacentElement("afterend", curvedCrossButtons[0]);
-  curvedCrossButtons[0].insertAdjacentElement("afterend", curvedCrossButtons[1]);
-} else if (pitch && pitch.parentElement) {
-  const toolbar = document.createElement("div");
-  toolbar.style.cssText = "display:flex;gap:8px;flex-wrap:wrap;margin:10px 0";
-  curvedCrossButtons.forEach(button => toolbar.appendChild(button));
-  pitch.parentElement.insertBefore(toolbar, pitch);
-}
-const allToolButtons = [...toolButtons, ...curvedCrossButtons];
+const allToolButtons = [...new Set([...toolButtons, ...curvedCrossButtons])];
 
 function isCurvedDrawing(drawing) {
   return ["curve", "curve-left", "curve-right"].includes(drawing.type);
@@ -2083,3 +2075,89 @@ if (tactics.some(tactic => tactic.players.length === 8)) {
   updatePlayerEditor();
   selectTool("move");
 }
+
+
+// ============================================
+// TACTIX — ANIMATION DES FLÈCHES DE DÉPLACEMENT
+// ============================================
+// Les flèches « Déplacement » sont liées au joueur situé à leur départ.
+// Un bouton permet de rejouer les courses sans supprimer les dessins.
+const animateMovesButton = document.createElement("button");
+animateMovesButton.type = "button";
+animateMovesButton.className = "drawing-tool";
+animateMovesButton.textContent = "▶ Animer les déplacements";
+animateMovesButton.title = "Faire courir les joueurs le long de leurs flèches de déplacement";
+
+const movementToolbar = document.querySelector('.drawing-toolbar:has(.drawing-tool[data-tool="arrow"])');
+const movementArrowButton = document.querySelector('.drawing-tool[data-tool="arrow"]');
+if (movementToolbar) {
+  movementToolbar.appendChild(animateMovesButton);
+} else if (movementArrowButton && movementArrowButton.parentElement) {
+  movementArrowButton.insertAdjacentElement("afterend", animateMovesButton);
+}
+
+let tactixMovementAnimation = null;
+animateMovesButton.addEventListener("click", () => {
+  if (tactixMovementAnimation !== null) {
+    cancelAnimationFrame(tactixMovementAnimation);
+    tactixMovementAnimation = null;
+  }
+
+  // Ne pas animer les passes, les zones ou les centres courbés.
+  const movementArrows = drawings.filter(d => d.type === "arrow");
+  const availablePlayers = new Set(players.map(p => p.id));
+  const runs = [];
+  for (const arrow of movementArrows) {
+    let nearest = null;
+    let shortestDistance = Infinity;
+    for (const player of players) {
+      if (!availablePlayers.has(player.id)) continue;
+      const distance = Math.hypot(player.x - arrow.x1, player.y - arrow.y1);
+      if (distance < shortestDistance) {
+        nearest = player;
+        shortestDistance = distance;
+      }
+    }
+    // La flèche doit commencer à proximité du joueur concerné.
+    if (!nearest || shortestDistance > 12) continue;
+    availablePlayers.delete(nearest.id);
+    runs.push({
+      player: nearest,
+      x1: nearest.x,
+      y1: nearest.y,
+      x2: clamp(arrow.x2, 5, 95),
+      y2: clamp(arrow.y2, 4, 96)
+    });
+  }
+
+  if (!runs.length) {
+    animateMovesButton.textContent = "Trace une flèche depuis un joueur";
+    setTimeout(() => {
+      animateMovesButton.textContent = "▶ Animer les déplacements";
+    }, 2200);
+    return;
+  }
+
+  animateMovesButton.disabled = true;
+  animateMovesButton.textContent = "⏵ Animation en cours…";
+  const duration = 1800;
+  let startTime = null;
+  const animateFrame = timestamp => {
+    if (startTime === null) startTime = timestamp;
+    const progress = Math.min(1, (timestamp - startTime) / duration);
+    const eased = progress * progress * (3 - 2 * progress);
+    for (const run of runs) {
+      run.player.x = run.x1 + (run.x2 - run.x1) * eased;
+      run.player.y = run.y1 + (run.y2 - run.y1) * eased;
+    }
+    renderPlayers();
+    if (progress < 1) {
+      tactixMovementAnimation = requestAnimationFrame(animateFrame);
+    } else {
+      tactixMovementAnimation = null;
+      animateMovesButton.disabled = false;
+      animateMovesButton.textContent = "▶ Animer les déplacements";
+    }
+  };
+  tactixMovementAnimation = requestAnimationFrame(animateFrame);
+});
