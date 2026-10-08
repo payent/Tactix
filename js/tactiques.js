@@ -56,7 +56,91 @@ const defaultPlayers = [
   { id: 6, x: 80, y: 50, name: "", number: 6, color: "#1776e8" },
   { id: 7, x: 35, y: 28, name: "", number: 7, color: "#1776e8" },
   { id: 8, x: 65, y: 28, name: "", number: 8, color: "#1776e8" }
+ ];
+
+// Football à 11 : formation 4-3-3.
+const defaultPlayers11 = [
+  { id: 1, x: 50, y: 91, name: "", number: 1, color: "#efb52d" },
+  { id: 2, x: 15, y: 74, name: "", number: 2, color: "#1776e8" },
+  { id: 3, x: 38, y: 77, name: "", number: 3, color: "#1776e8" },
+  { id: 4, x: 62, y: 77, name: "", number: 4, color: "#1776e8" },
+  { id: 5, x: 85, y: 74, name: "", number: 5, color: "#1776e8" },
+  { id: 6, x: 28, y: 53, name: "", number: 6, color: "#1776e8" },
+  { id: 7, x: 50, y: 56, name: "", number: 7, color: "#1776e8" },
+  { id: 8, x: 72, y: 53, name: "", number: 8, color: "#1776e8" },
+  { id: 9, x: 22, y: 28, name: "", number: 9, color: "#1776e8" },
+  { id: 10, x: 50, y: 22, name: "", number: 10, color: "#1776e8" },
+  { id: 11, x: 78, y: 28, name: "", number: 11, color: "#1776e8" }
 ];
+
+let currentMode = 8;
+const mode8Button = document.getElementById("mode-foot-8");
+const mode11Button = document.getElementById("mode-foot-11");
+const draftByMode = {};
+
+function getDefaultPlayers() {
+  return currentMode === 11 ? defaultPlayers11 : defaultPlayers;
+}
+
+function updateModeButtons() {
+  [mode8Button, mode11Button].forEach((button, index) => {
+    if (!button) return;
+    const active = currentMode === (index === 0 ? 8 : 11);
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-pressed", String(active));
+  });
+}
+
+function refreshPlayerSelect() {
+  playerSelect.innerHTML = "";
+  for (let id = 1; id <= currentMode; id++) {
+    const option = document.createElement("option");
+    option.value = String(id);
+    option.textContent = "Joueur " + id + (id === 1 ? " — Gardien" : "");
+    playerSelect.appendChild(option);
+  }
+}
+
+function changeMode(mode) {
+  if (mode !== 8 && mode !== 11) return;
+  if (mode === currentMode) return;
+
+  draftByMode[currentMode] = {
+    id: currentTacticId,
+    name: tacticName.value,
+    players: copyPlayers(players),
+    drawings: copyDrawings(drawings)
+  };
+  currentMode = mode;
+  const draft = draftByMode[mode];
+  const firstSaved = tactics.find(tactic => tactic.players.length === mode);
+  if (draft) {
+    currentTacticId = draft.id;
+    tacticName.value = draft.name;
+    players = copyPlayers(draft.players);
+    drawings = copyDrawings(draft.drawings);
+  } else if (firstSaved) {
+    currentTacticId = firstSaved.id;
+    tacticName.value = firstSaved.name;
+    players = copyPlayers(firstSaved.players);
+    drawings = copyDrawings(firstSaved.drawings || []);
+  } else {
+    currentTacticId = null;
+    tacticName.value = "Nouvelle tactique — Football à " + mode;
+    players = copyPlayers(getDefaultPlayers());
+    drawings = [];
+  }
+  drawingPreview = null;
+  drawingPointerId = null;
+  selectedPlayerId = 1;
+  refreshPlayerSelect();
+  updateModeButtons();
+  renderPlayers();
+  renderDrawings();
+  renderTacticsList();
+  updatePlayerEditor();
+  selectTool("move");
+}
 
 // ÉTAT DU LABORATOIRE
 
@@ -117,7 +201,7 @@ function copyDrawings(source) {
 }
 
 function validPlayers(value) {
-  if (!Array.isArray(value) || value.length !== 8) {
+  if (!Array.isArray(value) || ![8, 11].includes(value.length)) {
     return false;
   }
 
@@ -135,7 +219,7 @@ function validPlayers(value) {
     if (
       !Number.isInteger(player.id) ||
       player.id < 1 ||
-      player.id > 8 ||
+      player.id > value.length ||
       ids.has(player.id)
     ) {
       return false;
@@ -299,6 +383,8 @@ function sameTacticContent(first, second) {
     (a, b) => a.id - b.id
   );
 
+  if (firstPlayers.length !== secondPlayers.length) return false;
+
   const samePlayers = firstPlayers.every((player, index) => {
     const other = secondPlayers[index];
 
@@ -374,7 +460,7 @@ function updatePlayerOptions() {
 }
 
 function selectPlayer(id) {
-  if (!Number.isInteger(id) || id < 1 || id > 8) {
+  if (!Number.isInteger(id) || id < 1 || id > currentMode) {
     return;
   }
 
@@ -879,7 +965,9 @@ function saveNotebook() {
 function renderTacticsList() {
   tacticsList.innerHTML = "";
 
-  if (tactics.length === 0) {
+  const visibleTactics = tactics.filter(tactic => tactic.players.length === currentMode);
+
+  if (visibleTactics.length === 0) {
     const message = document.createElement("p");
 
     message.textContent =
@@ -889,7 +977,7 @@ function renderTacticsList() {
     return;
   }
 
-  tactics.forEach(tactic => {
+  visibleTactics.forEach(tactic => {
     const item = document.createElement("div");
 
     item.className = "tactic-list-item";
@@ -939,7 +1027,7 @@ function openTactic(id) {
     item => item.id === id
   );
 
-  if (!tactic) {
+  if (!tactic || tactic.players.length !== currentMode) {
     return;
   }
 
@@ -965,8 +1053,8 @@ function openTactic(id) {
 function newTactic() {
   currentTacticId = null;
 
-  tacticName.value = "Nouvelle tactique U11";
-  players = copyPlayers(defaultPlayers);
+  tacticName.value = "Nouvelle tactique — Football à " + currentMode;
+  players = copyPlayers(getDefaultPlayers());
   drawings = [];
 
   drawingPreview = null;
@@ -1064,9 +1152,9 @@ function deleteTactic(id) {
   if (currentTacticId === id) {
     currentTacticId = null;
 
-    tacticName.value = "Nouvelle tactique U11";
+    tacticName.value = "Nouvelle tactique — Football à " + currentMode;
 
-    players = copyPlayers(defaultPlayers);
+    players = copyPlayers(getDefaultPlayers());
     drawings = [];
 
     selectedPlayerId = 1;
@@ -1090,7 +1178,7 @@ function resetPlayers() {
   }
 
   players = players.map(player => {
-    const original = defaultPlayers.find(
+    const original = getDefaultPlayers().find(
       item => item.id === player.id
     );
 
@@ -1796,9 +1884,13 @@ restoreFileInput.addEventListener("change", event => {
 // ============================================
 
 loadNotebook();
+refreshPlayerSelect();
+updateModeButtons();
+if (mode8Button) mode8Button.addEventListener("click", () => changeMode(8));
+if (mode11Button) mode11Button.addEventListener("click", () => changeMode(11));
 
-if (tactics.length > 0) {
-  openTactic(tactics[0].id);
+if (tactics.some(tactic => tactic.players.length === 8)) {
+  openTactic(tactics.find(tactic => tactic.players.length === 8).id);
 } else {
   renderPlayers();
   renderDrawings();
