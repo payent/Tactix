@@ -2,7 +2,7 @@
 "use strict";
 
 // ============================================
-// TACTIX 0.9 — LABORATOIRE TACTIQUE
+// TACTIX 0.11 — LABORATOIRE TACTIQUE
 // Personnalisation des joueurs
 // Compatible avec les carnets TACTIX 0.6
 // ============================================
@@ -353,7 +353,7 @@ function validDrawings(value) {
   return value.every(drawing =>
     drawing !== null &&
     typeof drawing === "object" &&
-    ["arrow", "pass", "zone"].includes(drawing.type) &&
+    ["arrow", "pass", "zone", "curve", "curve-left", "curve-right"].includes(drawing.type) &&
     ["x1", "y1", "x2", "y2"].every(key =>
       Number.isFinite(drawing[key]) &&
       drawing[key] >= 0 &&
@@ -757,10 +757,56 @@ function renderPlayers() {
 // OUTILS DE DESSIN
 // ============================================
 
+// TACTIX 0.11 — Deux directions de courbure, sans modifier index.html.
+const curvedCrossButtons = [
+  { tool: "curve-left", label: "↶ Centre courbé gauche" },
+  { tool: "curve-right", label: "↷ Centre courbé droite" }
+].map(({ tool, label }) => {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "drawing-tool";
+  button.dataset.tool = tool;
+  button.textContent = label;
+  button.setAttribute("aria-pressed", "false");
+  button.title = "Tracer un centre avec une courbure vers " +
+    (tool === "curve-left" ? "la gauche" : "la droite");
+  return button;
+});
+
+const lastToolButton = toolButtons[toolButtons.length - 1];
+if (lastToolButton && lastToolButton.parentElement) {
+  lastToolButton.insertAdjacentElement("afterend", curvedCrossButtons[0]);
+  curvedCrossButtons[0].insertAdjacentElement("afterend", curvedCrossButtons[1]);
+} else if (pitch && pitch.parentElement) {
+  const toolbar = document.createElement("div");
+  toolbar.style.cssText = "display:flex;gap:8px;flex-wrap:wrap;margin:10px 0";
+  curvedCrossButtons.forEach(button => toolbar.appendChild(button));
+  pitch.parentElement.insertBefore(toolbar, pitch);
+}
+const allToolButtons = [...toolButtons, ...curvedCrossButtons];
+
+function isCurvedDrawing(drawing) {
+  return ["curve", "curve-left", "curve-right"].includes(drawing.type);
+}
+
+// Courbe de Bézier quadratique : gauche/droite par rapport au trajet du ballon.
+function getCurveControl(drawing) {
+  const dx = drawing.x2 - drawing.x1;
+  const dy = drawing.y2 - drawing.y1;
+  const bend = 0.28;
+  const side = drawing.type === "curve-left" ? -1
+    : drawing.type === "curve-right" ? 1
+    : (drawing.x1 <= 50 ? 1 : -1); // Compatibilité TACTIX 0.10.
+  return {
+    x: (drawing.x1 + drawing.x2) / 2 - dy * bend * side,
+    y: (drawing.y1 + drawing.y2) / 2 + dx * bend * side
+  };
+}
+
 function selectTool(tool) {
   activeTool = tool;
 
-  toolButtons.forEach(button => {
+  allToolButtons.forEach(button => {
     const selected = button.dataset.tool === tool;
 
     button.classList.toggle("active", selected);
@@ -776,7 +822,7 @@ function selectTool(tool) {
   );
 }
 
-toolButtons.forEach(button => {
+allToolButtons.forEach(button => {
   button.addEventListener("click", () => {
     selectTool(button.dataset.tool);
   });
@@ -852,6 +898,33 @@ function createLineDrawing(drawing) {
   return group;
 }
 
+function createCurvedDrawing(drawing) {
+  const control = getCurveControl(drawing);
+  const color = "#ffdf63";
+  const group = createSvgElement("g", {});
+  const path = createSvgElement("path", {
+    d: `M ${drawing.x1} ${drawing.y1} Q ${control.x} ${control.y} ${drawing.x2} ${drawing.y2}`,
+    fill: "none",
+    stroke: color,
+    "stroke-width": 0.8,
+    "stroke-linecap": "round",
+    "vector-effect": "non-scaling-stroke"
+  });
+  // Tangente au point d'arrivée, pour orienter la pointe correctement.
+  const angle = Math.atan2(drawing.y2 - control.y, drawing.x2 - control.x);
+  const length = 3;
+  const width = 1.6;
+  const bx = drawing.x2 - Math.cos(angle) * length;
+  const by = drawing.y2 - Math.sin(angle) * length;
+  const arrowHead = createSvgElement("polygon", {
+    points: `${drawing.x2},${drawing.y2} ${bx + Math.sin(angle) * width},${by - Math.cos(angle) * width} ${bx - Math.sin(angle) * width},${by + Math.cos(angle) * width}`,
+    fill: color
+  });
+  group.appendChild(path);
+  group.appendChild(arrowHead);
+  return group;
+}
+
 function createZoneDrawing(drawing) {
   const x = Math.min(drawing.x1, drawing.x2);
   const y = Math.min(drawing.y1, drawing.y2);
@@ -880,7 +953,9 @@ function renderDrawings() {
     const element =
       drawing.type === "zone"
         ? createZoneDrawing(drawing)
-        : createLineDrawing(drawing);
+        : isCurvedDrawing(drawing)
+          ? createCurvedDrawing(drawing)
+          : createLineDrawing(drawing);
 
     drawingLayer.appendChild(element);
   });
@@ -889,7 +964,9 @@ function renderDrawings() {
     const previewElement =
       drawingPreview.type === "zone"
         ? createZoneDrawing(drawingPreview)
-        : createLineDrawing(drawingPreview);
+        : isCurvedDrawing(drawingPreview)
+          ? createCurvedDrawing(drawingPreview)
+          : createLineDrawing(drawingPreview);
 
     previewElement.setAttribute("opacity", "0.6");
     drawingLayer.appendChild(previewElement);
@@ -1459,6 +1536,31 @@ function exportTacticAsPng() {
       return;
     }
 
+    if (isCurvedDrawing(drawing)) {
+      const control = getCurveControl(drawing);
+      const cx = px(control.x);
+      const cy = py(control.y);
+      ctx.strokeStyle = "#ffdf63";
+      ctx.fillStyle = "#ffdf63";
+      ctx.lineWidth = 7;
+      ctx.lineCap = "round";
+      ctx.setLineDash([]);
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.quadraticCurveTo(cx, cy, x2, y2);
+      ctx.stroke();
+      const angle = Math.atan2(y2 - cy, x2 - cx);
+      const bx = x2 - Math.cos(angle) * 26;
+      const by = y2 - Math.sin(angle) * 26;
+      ctx.beginPath();
+      ctx.moveTo(x2, y2);
+      ctx.lineTo(bx + Math.sin(angle) * 13, by - Math.cos(angle) * 13);
+      ctx.lineTo(bx - Math.sin(angle) * 13, by + Math.cos(angle) * 13);
+      ctx.closePath();
+      ctx.fill();
+      return;
+    }
+
     const isPass = drawing.type === "pass";
 
     const color =
@@ -1787,197 +1889,4 @@ function restoreNotebookFromFile(file) {
       );
 
       const sameIdTactic =
-        existing || alreadyPrepared;
-
-      if (
-        sameIdTactic &&
-        sameTacticContent(sameIdTactic, imported)
-      ) {
-        skippedDuplicates++;
-        return;
-      }
-
-      if (usedIds.has(imported.id)) {
-        imported.id = createUniqueId(usedIds);
-      } else {
-        usedIds.add(imported.id);
-      }
-
-      additions.push(imported);
-    });
-
-    if (additions.length === 0) {
-      alert(
-        "Toutes les tactiques de cette sauvegarde " +
-        "sont déjà présentes dans ton carnet.\n\n" +
-        "Aucun doublon n'a été ajouté."
-      );
-      return;
-    }
-
-    // CONFIRMATION AVANT MODIFICATION
-
-    const message =
-      "Sauvegarde TACTIX vérifiée.\n\n" +
-      "Tactiques à ajouter : " +
-      additions.length +
-      "\n" +
-      "Doublons ignorés : " +
-      skippedDuplicates +
-      "\n\n" +
-      "Tes tactiques actuelles seront conservées.\n\n" +
-      "Confirmer la restauration ?";
-
-    if (!confirm(message)) {
-      return;
-    }
-
-    // ENREGISTREMENT AVEC RETOUR ARRIÈRE
-
-    const previousTactics = tactics;
-
-    tactics = [
-      ...tactics,
-      ...additions
-    ];
-
-    if (!saveNotebook()) {
-      tactics = previousTactics;
-      return;
-    }
-
-    renderTacticsList();
-
-    alert(
-      "Restauration terminée !\n\n" +
-      additions.length +
-      " tactique(s) ajoutée(s).\n" +
-      skippedDuplicates +
-      " doublon(s) ignoré(s).\n\n" +
-      "Tes anciennes tactiques ont été conservées."
-    );
-  };
-
-  reader.readAsText(file, "UTF-8");
-}
-
-// ============================================
-// CHARGEMENT DES SAUVEGARDES LOCALES
-// ============================================
-
-function loadNotebook() {
-  try {
-    const savedData =
-      localStorage.getItem(STORAGE_KEY);
-
-    if (savedData !== null) {
-      const saved = JSON.parse(savedData);
-
-      if (Array.isArray(saved)) {
-        tactics = saved
-          .filter(validTactic)
-          .map(normalizeTactic);
-      }
-
-      return;
-    }
-
-    // RÉCUPÉRER L'ANCIENNE TACTIQUE
-
-    const oldData =
-      localStorage.getItem(OLD_STORAGE_KEY);
-
-    if (!oldData) {
-      return;
-    }
-
-    const oldTactic = JSON.parse(oldData);
-
-    if (
-      oldTactic &&
-      validPlayers(oldTactic.players)
-    ) {
-      tactics.push({
-        id: createId(),
-        name:
-          typeof oldTactic.name === "string"
-            ? oldTactic.name
-            : "Ma première tactique U11",
-        players: copyPlayers(oldTactic.players),
-        drawings: []
-      });
-
-      saveNotebook();
-    }
-  } catch (error) {
-    console.warn(
-      "Impossible de charger le carnet tactique :",
-      error
-    );
-  }
-}
-
-// ============================================
-// BOUTONS
-// ============================================
-
-newButton.addEventListener(
-  "click",
-  newTactic
-);
-
-resetButton.addEventListener(
-  "click",
-  resetPlayers
-);
-
-saveButton.addEventListener(
-  "click",
-  saveCurrentTactic
-);
-
-exportButton.addEventListener(
-  "click",
-  exportTacticAsPng
-);
-
-backupButton.addEventListener(
-  "click",
-  backupNotebook
-);
-
-restoreButton.addEventListener("click", () => {
-  restoreFileInput.value = "";
-  restoreFileInput.click();
-});
-
-restoreFileInput.addEventListener("change", event => {
-  const file = event.target.files[0];
-
-  if (!file) {
-    return;
-  }
-
-  restoreNotebookFromFile(file);
-});
-
-// ============================================
-// DÉMARRAGE DE TACTIX
-// ============================================
-
-loadNotebook();
-refreshPlayerSelect();
-refreshFormations();
-updateModeButtons();
-if (mode8Button) mode8Button.addEventListener("click", () => changeMode(8));
-if (mode11Button) mode11Button.addEventListener("click", () => changeMode(11));
-
-if (tactics.some(tactic => tactic.players.length === 8)) {
-  openTactic(tactics.find(tactic => tactic.players.length === 8).id);
-} else {
-  renderPlayers();
-  renderDrawings();
-  renderTacticsList();
-  updatePlayerEditor();
-  selectTool("move");
-}
+        exist
