@@ -1889,4 +1889,197 @@ function restoreNotebookFromFile(file) {
       );
 
       const sameIdTactic =
-        exist
+        existing || alreadyPrepared;
+
+      if (
+        sameIdTactic &&
+        sameTacticContent(sameIdTactic, imported)
+      ) {
+        skippedDuplicates++;
+        return;
+      }
+
+      if (usedIds.has(imported.id)) {
+        imported.id = createUniqueId(usedIds);
+      } else {
+        usedIds.add(imported.id);
+      }
+
+      additions.push(imported);
+    });
+
+    if (additions.length === 0) {
+      alert(
+        "Toutes les tactiques de cette sauvegarde " +
+        "sont déjà présentes dans ton carnet.\n\n" +
+        "Aucun doublon n'a été ajouté."
+      );
+      return;
+    }
+
+    // CONFIRMATION AVANT MODIFICATION
+
+    const message =
+      "Sauvegarde TACTIX vérifiée.\n\n" +
+      "Tactiques à ajouter : " +
+      additions.length +
+      "\n" +
+      "Doublons ignorés : " +
+      skippedDuplicates +
+      "\n\n" +
+      "Tes tactiques actuelles seront conservées.\n\n" +
+      "Confirmer la restauration ?";
+
+    if (!confirm(message)) {
+      return;
+    }
+
+    // ENREGISTREMENT AVEC RETOUR ARRIÈRE
+
+    const previousTactics = tactics;
+
+    tactics = [
+      ...tactics,
+      ...additions
+    ];
+
+    if (!saveNotebook()) {
+      tactics = previousTactics;
+      return;
+    }
+
+    renderTacticsList();
+
+    alert(
+      "Restauration terminée !\n\n" +
+      additions.length +
+      " tactique(s) ajoutée(s).\n" +
+      skippedDuplicates +
+      " doublon(s) ignoré(s).\n\n" +
+      "Tes anciennes tactiques ont été conservées."
+    );
+  };
+
+  reader.readAsText(file, "UTF-8");
+}
+
+// ============================================
+// CHARGEMENT DES SAUVEGARDES LOCALES
+// ============================================
+
+function loadNotebook() {
+  try {
+    const savedData =
+      localStorage.getItem(STORAGE_KEY);
+
+    if (savedData !== null) {
+      const saved = JSON.parse(savedData);
+
+      if (Array.isArray(saved)) {
+        tactics = saved
+          .filter(validTactic)
+          .map(normalizeTactic);
+      }
+
+      return;
+    }
+
+    // RÉCUPÉRER L'ANCIENNE TACTIQUE
+
+    const oldData =
+      localStorage.getItem(OLD_STORAGE_KEY);
+
+    if (!oldData) {
+      return;
+    }
+
+    const oldTactic = JSON.parse(oldData);
+
+    if (
+      oldTactic &&
+      validPlayers(oldTactic.players)
+    ) {
+      tactics.push({
+        id: createId(),
+        name:
+          typeof oldTactic.name === "string"
+            ? oldTactic.name
+            : "Ma première tactique U11",
+        players: copyPlayers(oldTactic.players),
+        drawings: []
+      });
+
+      saveNotebook();
+    }
+  } catch (error) {
+    console.warn(
+      "Impossible de charger le carnet tactique :",
+      error
+    );
+  }
+}
+
+// ============================================
+// BOUTONS
+// ============================================
+
+newButton.addEventListener(
+  "click",
+  newTactic
+);
+
+resetButton.addEventListener(
+  "click",
+  resetPlayers
+);
+
+saveButton.addEventListener(
+  "click",
+  saveCurrentTactic
+);
+
+exportButton.addEventListener(
+  "click",
+  exportTacticAsPng
+);
+
+backupButton.addEventListener(
+  "click",
+  backupNotebook
+);
+
+restoreButton.addEventListener("click", () => {
+  restoreFileInput.value = "";
+  restoreFileInput.click();
+});
+
+restoreFileInput.addEventListener("change", event => {
+  const file = event.target.files[0];
+
+  if (!file) {
+    return;
+  }
+
+  restoreNotebookFromFile(file);
+});
+
+// ============================================
+// DÉMARRAGE DE TACTIX
+// ============================================
+
+loadNotebook();
+refreshPlayerSelect();
+refreshFormations();
+updateModeButtons();
+if (mode8Button) mode8Button.addEventListener("click", () => changeMode(8));
+if (mode11Button) mode11Button.addEventListener("click", () => changeMode(11));
+
+if (tactics.some(tactic => tactic.players.length === 8)) {
+  openTactic(tactics.find(tactic => tactic.players.length === 8).id);
+} else {
+  renderPlayers();
+  renderDrawings();
+  renderTacticsList();
+  updatePlayerEditor();
+  selectTool("move");
+}
