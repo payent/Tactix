@@ -1,577 +1,1160 @@
 <!DOCTYPE html>
+
 <html lang="fr">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#101b18">
 
-  <title>TACTIX — Football Studio</title>
+  <meta charset="UTF-8">
 
-  <link rel="stylesheet" href="css/style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <script src="js/app.js" defer></script>
-  <script src="js/tactiques.js" defer></script>
+  <meta name="theme-color" content="#101b18">
+
+
+
+  <title>TACTIX — Football Studio</title>
+
+
+
+  <link rel="stylesheet" href="css/style.css">
+
+
+
+  <script src="js/app.js" defer></script>
+
+  <script src="js/tactiques.js" defer></script>
+
 </head>
+
+
 
 <body>
 
-  <div class="app">
 
-    <!-- MENU LATÉRAL -->
 
-    <aside class="sidebar">
+  <div class="app">
 
-      <div class="brand">
-        <div class="brand-logo">T</div>
 
-        <div>
-          <h1>TACTIX</h1>
-          <span>FOOTBALL STUDIO</span>
-        </div>
-      </div>
 
-      <nav class="navigation">
+    <!-- MENU LATÉRAL -->
 
-        <button class="nav-link active" data-page="accueil" type="button">
-          <span>⌂</span> Tableau de bord
-        </button>
 
-        <button class="nav-link" data-page="tactiques" type="button">
-          <span>▦</span> Laboratoire tactique
-        </button>
 
-        <button class="nav-link" data-page="entrainements" type="button">
-          <span>◎</span> Entraînements
-        </button>
+    <aside class="sidebar">
 
-        <button class="nav-link" data-page="analyse" type="button">
-          <span>▶</span> Analyse vidéo
-        </button>
 
-      </nav>
 
-      <div class="sidebar-bottom">
-        <span class="status-dot"></span>
-        TACTIX — Version 0.7
-      </div>
+      <div class="brand">
 
-    </aside>
+        <div class="brand-logo">T</div>
 
-    <!-- CONTENU PRINCIPAL -->
 
-    <main class="main-content">
 
-      <header class="topbar">
+        <div>
 
-        <div>
-          <p class="eyebrow">FOOTBALL PERFORMANCE STUDIO</p>
-          <h2 id="page-title">Tableau de bord</h2>
-        </div>
+          <h1>TACTIX</h1>
 
-        <div class="profile">⚽</div>
+          <span>FOOTBALL STUDIO</span>
 
-      </header>
+        </div>
 
-      <!-- TABLEAU DE BORD -->
+      </div>
 
-      <section class="page active" id="accueil">
 
-        <div class="hero">
 
-          <div>
-            <p class="eyebrow">BIENVENUE SUR TACTIX</p>
+      <nav class="navigation">
 
-            <h3>
-              Le football se pense.<br>
-              <span>Le jeu se construit.</span>
-            </h3>
 
-            <p>
-              Ton espace personnel pour créer des tactiques,
-              préparer tes entraînements et analyser les matchs.
-            </p>
-          </div>
 
-          <div class="hero-ball">⚽</div>
+        <button class="nav-link active" data-page="accueil" type="button">
 
-        </div>
+          <span>⌂</span> Tableau de bord
 
-        <div class="section-heading">
-          <h3>Mes espaces de travail</h3>
-          <p>Choisis ton domaine pour commencer.</p>
-        </div>
+        </button>
 
-        <div class="dashboard-grid">
 
-          <button class="feature-card" data-open="tactiques" type="button">
 
-            <div class="feature-icon">▦</div>
+        <button class="nav-link" data-page="tactiques" type="button">
 
-            <span class="feature-tag">LABORATOIRE TACTIQUE</span>
+          <span>▦</span> Laboratoire tactique
 
-            <h4>Laboratoire tactique</h4>
+        </button>
 
-            <p>
-              Construis tes systèmes de jeu, personnalise tes joueurs,
-              dessine les déplacements et sauvegarde ton carnet.
-            </p>
 
-            <span class="card-action">Explorer →</span>
 
-          </button>
+        <button class="nav-link" data-page="entrainements" type="button">
 
-          <button class="feature-card" data-open="entrainements" type="button">
+          <span>◎</span> Entraînements
 
-            <div class="feature-icon">◎</div>
+        </button>
 
-            <span class="feature-tag">ÉDUCATEUR U10–U11</span>
 
-            <h4>Entraînements</h4>
 
-            <p>
-              Organise tes séances, prépare tes exercices
-              et développe tes idées pour tes jeunes joueurs.
-            </p>
+        <button class="nav-link" data-page="analyse" type="button">
 
-            <span class="card-action">Explorer →</span>
+          <span>▶</span> Analyse vidéo
 
-          </button>
+        </button>
 
-          <button class="feature-card" data-open="analyse" type="button">
 
-            <div class="feature-icon">▶</div>
 
-            <span class="feature-tag">ANALYSE DE MATCH</span>
+      </nav>
 
-            <h4>Analyse vidéo</h4>
 
-            <p>
-              Étudie les matchs, observe les mouvements
-              et décortique les situations de jeu.
-            </p>
 
-            <span class="card-action">Explorer →</span>
+      <div class="sidebar-bottom">
 
-          </button>
+        <span class="status-dot"></span>
 
-        </div>
+        TACTIX — Version 0.8
 
-        <div class="info-panel">
+      </div>
 
-          <span>✦</span>
 
-          <div>
-            <h4>Ton laboratoire football prend forme</h4>
 
-            <p>
-              Crée tes compositions tactiques, personnalise ton équipe,
-              exporte tes images et protège ton carnet.
-            </p>
-          </div>
+    </aside>
 
-        </div>
 
-      </section>
 
-      <!-- LABORATOIRE TACTIQUE -->
+    <!-- CONTENU PRINCIPAL -->
 
-      <section class="page" id="tactiques">
 
-        <div class="workspace-header">
 
-          <span class="workspace-icon">▦</span>
+    <main class="main-content">
 
-          <div>
-            <p class="eyebrow">ESPACE 01</p>
-            <h3>Laboratoire tactique</h3>
 
-            <p>
-              Construis, personnalise, dessine et conserve
-              tes systèmes de jeu.
-            </p>
-          </div>
 
-        </div>
+      <header class="topbar">
 
-        <!-- GESTION DES TACTIQUES -->
 
-        <div class="tactics-toolbar">
 
-          <label for="team-name">Nom de la tactique</label>
+        <div>
 
-          <input
-            id="team-name"
-            type="text"
-            value="Ma tactique U11"
-            maxlength="80"
-          >
+          <p class="eyebrow">FOOTBALL PERFORMANCE STUDIO</p>
 
-          <button id="new-tactic" type="button">
-            + Nouvelle tactique
-          </button>
+          <h2 id="page-title">Tableau de bord</h2>
 
-          <button id="reset-players" type="button">
-            Réinitialiser
-          </button>
+        </div>
 
-          <button id="save-tactic" type="button">
-            Enregistrer
-          </button>
 
-          <button id="export-tactic" type="button">
-            ↓ Exporter en PNG
-          </button>
 
-        </div>
+        <div class="profile">⚽</div>
 
-        <!-- SAUVEGARDE ET RESTAURATION -->
 
-        <div
-          class="drawing-toolbar"
-          aria-label="Sauvegarde du carnet tactique"
-        >
 
-          <span class="drawing-toolbar-title">
-            Sauvegarde du carnet
-          </span>
+      </header>
 
-          <button
-            id="backup-notebook"
-            class="drawing-tool"
-            type="button"
-          >
-            ↓ Sauvegarder mon carnet
-          </button>
 
-          <button
-            id="restore-notebook"
-            class="drawing-tool"
-            type="button"
-          >
-            ↑ Restaurer un carnet
-          </button>
 
-          <input
-            id="restore-file"
-            type="file"
-            accept=".json,application/json"
-            hidden
-          >
+      <!-- TABLEAU DE BORD -->
 
-        </div>
 
-        <!-- OUTILS DE DESSIN -->
 
-        <div
-          class="drawing-toolbar"
-          aria-label="Outils de dessin tactique"
-        >
+      <section class="page active" id="accueil">
 
-          <span class="drawing-toolbar-title">
-            Outils tactiques
-          </span>
 
-          <button
-            class="drawing-tool active"
-            data-tool="move"
-            type="button"
-          >
-            ✋ Déplacer
-          </button>
 
-          <button
-            class="drawing-tool"
-            data-tool="arrow"
-            type="button"
-          >
-            ➜ Déplacement
-          </button>
+        <div class="hero">
 
-          <button
-            class="drawing-tool"
-            data-tool="pass"
-            type="button"
-          >
-            ⇢ Passe
-          </button>
 
-          <button
-            class="drawing-tool"
-            data-tool="zone"
-            type="button"
-          >
-            ▧ Zone
-          </button>
 
-          <button
-            id="undo-drawing"
-            class="drawing-secondary"
-            type="button"
-          >
-            ↶ Annuler
-          </button>
+          <div>
 
-          <button
-            id="clear-drawings"
-            class="drawing-secondary"
-            type="button"
-          >
-            ✕ Effacer les dessins
-          </button>
+            <p class="eyebrow">BIENVENUE SUR TACTIX</p>
 
-        </div>
 
-        <!-- TERRAIN ET PANNEAUX -->
 
-        <div class="tactics-layout">
+            <h3>
 
-          <!-- TERRAIN -->
+              Le football se pense.<br>
 
-          <div class="interactive-pitch" id="interactive-pitch">
+              <span>Le jeu se construit.</span>
 
-            <div class="pitch-middle"></div>
-            <div class="pitch-circle"></div>
-            <div class="pitch-box pitch-box-top"></div>
-            <div class="pitch-box pitch-box-bottom"></div>
+            </h3>
 
-            <svg
-              id="drawing-layer"
-              viewBox="0 0 100 100"
-              preserveAspectRatio="none"
-              aria-label="Dessins tactiques"
-            ></svg>
 
-            <div id="players-layer"></div>
 
-          </div>
+            <p>
 
-          <!-- PANNEAUX LATÉRAUX -->
+              Ton espace personnel pour créer des tactiques,
 
-          <div class="tactics-side-panels">
+              préparer tes entraînements et analyser les matchs.
 
-            <!-- PERSONNALISATION DES JOUEURS -->
+            </p>
 
-            <div class="tactics-help player-editor">
+          </div>
 
-              <h4>Personnaliser les joueurs</h4>
 
-              <p>
-                Choisis un joueur, puis modifie son prénom,
-                son numéro et sa couleur.
-              </p>
 
-              <div class="player-editor-fields">
+          <div class="hero-ball">⚽</div>
 
-                <label for="player-select">
-                  Joueur à personnaliser
-                </label>
 
-                <select id="player-select">
-                  <option value="1">Joueur 1 — Gardien</option>
-                  <option value="2">Joueur 2</option>
-                  <option value="3">Joueur 3</option>
-                  <option value="4">Joueur 4</option>
-                  <option value="5">Joueur 5</option>
-                  <option value="6">Joueur 6</option>
-                  <option value="7">Joueur 7</option>
-                  <option value="8">Joueur 8</option>
-                </select>
 
-                <label for="player-name">
-                  Prénom du joueur
-                </label>
+        </div>
 
-                <input
-                  id="player-name"
-                  type="text"
-                  maxlength="24"
-                  placeholder="Ex. : Lucas"
-                  autocomplete="off"
-                >
 
-                <label for="player-number">
-                  Numéro du maillot
-                </label>
 
-                <input
-                  id="player-number"
-                  type="number"
-                  min="1"
-                  max="99"
-                  step="1"
-                  value="1"
-                >
+        <div class="section-heading">
 
-                <label for="player-color">
-                  Couleur du joueur
-                </label>
+          <h3>Mes espaces de travail</h3>
 
-                <input
-                  id="player-color"
-                  type="color"
-                  value="#efb52d"
-                >
+          <p>Choisis ton domaine pour commencer.</p>
 
-              </div>
+        </div>
 
-              <p class="tactics-tip">
-                Les modifications apparaîtront sur le terrain.
-                Clique sur <strong>Enregistrer</strong>
-                pour les conserver dans ton carnet.
-              </p>
 
-            </div>
 
-            <!-- CARNET TACTIQUE -->
+        <div class="dashboard-grid">
 
-            <div class="tactics-help">
 
-              <h4>Mon carnet tactique</h4>
 
-              <p>
-                Enregistre plusieurs formations et retrouve-les ici.
-              </p>
+          <button class="feature-card" data-open="tactiques" type="button">
 
-              <div id="tactics-list" class="tactics-list">
-                <p>Aucune tactique enregistrée.</p>
-              </div>
 
-              <p class="tactics-tip">
-                Sélectionne une tactique pour l'afficher sur le terrain.
-              </p>
 
-              <div class="drawing-help">
+            <div class="feature-icon">▦</div>
 
-                <h4>Comment dessiner ?</h4>
 
-                <p>
-                  <strong>Déplacer :</strong>
-                  repositionne librement tes joueurs.
-                </p>
 
-                <p>
-                  <strong>Déplacement :</strong>
-                  trace une flèche pour représenter une course.
-                </p>
+            <span class="feature-tag">LABORATOIRE TACTIQUE</span>
 
-                <p>
-                  <strong>Passe :</strong>
-                  dessine une passe entre deux positions.
-                </p>
 
-                <p>
-                  <strong>Zone :</strong>
-                  délimite une zone tactique sur le terrain.
-                </p>
 
-                <p>
-                  <strong>Annuler :</strong>
-                  supprime le dernier dessin.
-                </p>
+            <h4>Laboratoire tactique</h4>
 
-                <p>
-                  <strong>Exporter en PNG :</strong>
-                  télécharge une image de la tactique affichée.
-                </p>
 
-              </div>
 
-              <div class="drawing-help">
+            <p>
 
-                <h4>Protéger mon carnet</h4>
+              Construis tes systèmes de jeu, personnalise tes joueurs,
 
-                <p>
-                  <strong>Sauvegarder mon carnet :</strong>
-                  télécharge un fichier JSON contenant
-                  toutes tes tactiques enregistrées.
-                </p>
+              dessine les déplacements et sauvegarde ton carnet.
 
-                <p>
-                  <strong>Restaurer un carnet :</strong>
-                  importe une sauvegarde JSON pour récupérer
-                  tes formations et leurs dessins.
-                </p>
+            </p>
 
-                <p>
-                  Conserve ton fichier de sauvegarde
-                  dans un endroit sûr.
-                </p>
 
-              </div>
 
-            </div>
+            <span class="card-action">Explorer →</span>
 
-          </div>
 
+
+          </button>
+
+
+
+          <button class="feature-card" data-open="entrainements" type="button">
+
+
+
+            <div class="feature-icon">◎</div>
+
+
+
+            <span class="feature-tag">ÉDUCATEUR U10–U11</span>
+
+
+
+            <h4>Entraînements</h4>
+
+
+
+            <p>
+
+              Organise tes séances, prépare tes exercices
+
+              et développe tes idées pour tes jeunes joueurs.
+
+            </p>
+
+
+
+            <span class="card-action">Explorer →</span>
+
+
+
+          </button>
+
+
+
+          <button class="feature-card" data-open="analyse" type="button">
+
+
+
+            <div class="feature-icon">▶</div>
+
+
+
+            <span class="feature-tag">ANALYSE DE MATCH</span>
+
+
+
+            <h4>Analyse vidéo</h4>
+
+
+
+            <p>
+
+              Étudie les matchs, observe les mouvements
+
+              et décortique les situations de jeu.
+
+            </p>
+
+
+
+            <span class="card-action">Explorer →</span>
+
+
+
+          </button>
+
+
+
+        </div>
+
+
+
+        <div class="info-panel">
+
+
+
+          <span>✦</span>
+
+
+
+          <div>
+
+            <h4>Ton laboratoire football prend forme</h4>
+
+
+
+            <p>
+
+              Crée tes compositions tactiques, personnalise ton équipe,
+
+              exporte tes images et protège ton carnet.
+
+            </p>
+
+          </div>
+
+
+
+        </div>
+
+
+
+      </section>
+
+
+
+      <!-- LABORATOIRE TACTIQUE -->
+
+
+
+      <section class="page" id="tactiques">
+
+
+
+        <div class="workspace-header">
+
+
+
+          <span class="workspace-icon">▦</span>
+
+
+
+          <div>
+
+            <p class="eyebrow">ESPACE 01</p>
+
+            <h3>Laboratoire tactique</h3>
+
+
+
+            <p>
+
+              Construis, personnalise, dessine et conserve
+
+              tes systèmes de jeu.
+
+            </p>
+
+          </div>
+
+
+
+        </div>
+        <!-- CHOIX DU FORMAT DE JEU : activation dans js/tactiques.js à l’étape suivante -->
+        <div class="drawing-toolbar" aria-label="Format de football" style="margin-bottom:18px;gap:12px;flex-wrap:wrap;">
+          <span class="drawing-toolbar-title">Choisir le format :</span>
+          <button id="mode-foot-8" class="drawing-tool active" type="button" aria-pressed="true">⚽ Football à 8</button>
+          <button id="mode-foot-11" class="drawing-tool" type="button" aria-pressed="false">⚽ Football à 11</button>
         </div>
 
-      </section>
 
-      <!-- ENTRAÎNEMENTS -->
 
-      <section class="page" id="entrainements">
 
-        <div class="workspace-header">
+        <!-- GESTION DES TACTIQUES -->
 
-          <span class="workspace-icon">◎</span>
 
-          <div>
-            <p class="eyebrow">ESPACE 02</p>
-            <h3>Entraînements U10–U11</h3>
-            <p>Prépare tes séances et développe tes exercices.</p>
-          </div>
 
-        </div>
+        <div class="tactics-toolbar">
 
-        <div class="workspace-panel">
 
-          <div class="placeholder-icon">📋</div>
 
-          <h4>Ton carnet d'entraîneur</h4>
+          <label for="team-name">Nom de la tactique</label>
 
-          <p>
-            Prochaine étape : créer des séances avec leurs objectifs,
-            leur durée, leurs exercices et leurs consignes.
-          </p>
 
-        </div>
 
-      </section>
+          <input
 
-      <!-- ANALYSE VIDÉO -->
+            id="team-name"
 
-      <section class="page" id="analyse">
+            type="text"
 
-        <div class="workspace-header">
+            value="Ma tactique"
 
-          <span class="workspace-icon">▶</span>
+            maxlength="80"
 
-          <div>
-            <p class="eyebrow">ESPACE 03</p>
-            <h3>Analyse vidéo</h3>
-            <p>Observe, décortique et comprends le jeu.</p>
-          </div>
+          >
 
-        </div>
 
-        <div class="workspace-panel">
 
-          <div class="placeholder-icon">🎬</div>
+          <button id="new-tactic" type="button">
 
-          <h4>Ton centre d'analyse</h4>
+            + Nouvelle tactique
 
-          <p>
-            Prochaine étape : importer une vidéo autorisée,
-            contrôler sa lecture et annoter les situations tactiques.
-          </p>
+          </button>
 
-        </div>
 
-      </section>
 
-    </main>
+          <button id="reset-players" type="button">
 
-  </div>
+            Réinitialiser
+
+          </button>
+
+
+
+          <button id="save-tactic" type="button">
+
+            Enregistrer
+
+          </button>
+
+
+
+          <button id="export-tactic" type="button">
+
+            ↓ Exporter en PNG
+
+          </button>
+
+
+
+        </div>
+
+
+
+        <!-- SAUVEGARDE ET RESTAURATION -->
+
+
+
+        <div
+
+          class="drawing-toolbar"
+
+          aria-label="Sauvegarde du carnet tactique"
+
+        >
+
+
+
+          <span class="drawing-toolbar-title">
+
+            Sauvegarde du carnet
+
+          </span>
+
+
+
+          <button
+
+            id="backup-notebook"
+
+            class="drawing-tool"
+
+            type="button"
+
+          >
+
+            ↓ Sauvegarder mon carnet
+
+          </button>
+
+
+
+          <button
+
+            id="restore-notebook"
+
+            class="drawing-tool"
+
+            type="button"
+
+          >
+
+            ↑ Restaurer un carnet
+
+          </button>
+
+
+
+          <input
+
+            id="restore-file"
+
+            type="file"
+
+            accept=".json,application/json"
+
+            hidden
+
+          >
+
+
+
+        </div>
+
+
+
+        <!-- OUTILS DE DESSIN -->
+
+
+
+        <div
+
+          class="drawing-toolbar"
+
+          aria-label="Outils de dessin tactique"
+
+        >
+
+
+
+          <span class="drawing-toolbar-title">
+
+            Outils tactiques
+
+          </span>
+
+
+
+          <button
+
+            class="drawing-tool active"
+
+            data-tool="move"
+
+            type="button"
+
+          >
+
+            ✋ Déplacer
+
+          </button>
+
+
+
+          <button
+
+            class="drawing-tool"
+
+            data-tool="arrow"
+
+            type="button"
+
+          >
+
+            ➜ Déplacement
+
+          </button>
+
+
+
+          <button
+
+            class="drawing-tool"
+
+            data-tool="pass"
+
+            type="button"
+
+          >
+
+            ⇢ Passe
+
+          </button>
+
+
+
+          <button
+
+            class="drawing-tool"
+
+            data-tool="zone"
+
+            type="button"
+
+          >
+
+            ▧ Zone
+
+          </button>
+
+
+
+          <button
+
+            id="undo-drawing"
+
+            class="drawing-secondary"
+
+            type="button"
+
+          >
+
+            ↶ Annuler
+
+          </button>
+
+
+
+          <button
+
+            id="clear-drawings"
+
+            class="drawing-secondary"
+
+            type="button"
+
+          >
+
+            ✕ Effacer les dessins
+
+          </button>
+
+
+
+        </div>
+
+
+
+        <!-- TERRAIN ET PANNEAUX -->
+
+
+
+        <div class="tactics-layout">
+
+
+
+          <!-- TERRAIN -->
+
+
+
+          <div class="interactive-pitch" id="interactive-pitch">
+
+
+
+            <div class="pitch-middle"></div>
+
+            <div class="pitch-circle"></div>
+
+            <div class="pitch-box pitch-box-top"></div>
+
+            <div class="pitch-box pitch-box-bottom"></div>
+
+
+
+            <svg
+
+              id="drawing-layer"
+
+              viewBox="0 0 100 100"
+
+              preserveAspectRatio="none"
+
+              aria-label="Dessins tactiques"
+
+            ></svg>
+
+
+
+            <div id="players-layer"></div>
+
+
+
+          </div>
+
+
+
+          <!-- PANNEAUX LATÉRAUX -->
+
+
+
+          <div class="tactics-side-panels">
+
+
+
+            <!-- PERSONNALISATION DES JOUEURS -->
+
+
+
+            <div class="tactics-help player-editor">
+
+
+
+              <h4>Personnaliser les joueurs</h4>
+
+
+
+              <p>
+
+                Choisis un joueur, puis modifie son prénom,
+
+                son numéro et sa couleur.
+
+              </p>
+
+
+
+              <div class="player-editor-fields">
+
+
+
+                <label for="player-select">
+
+                  Joueur à personnaliser
+
+                </label>
+
+
+
+                <select id="player-select">
+
+                  <option value="1">Joueur 1 — Gardien</option>
+
+                  <option value="2">Joueur 2</option>
+
+                  <option value="3">Joueur 3</option>
+
+                  <option value="4">Joueur 4</option>
+
+                  <option value="5">Joueur 5</option>
+
+                  <option value="6">Joueur 6</option>
+
+                  <option value="7">Joueur 7</option>
+
+                  <option value="8">Joueur 8</option>
+
+                </select>
+
+
+
+                <label for="player-name">
+
+                  Prénom du joueur
+
+                </label>
+
+
+
+                <input
+
+                  id="player-name"
+
+                  type="text"
+
+                  maxlength="24"
+
+                  placeholder="Ex. : Lucas"
+
+                  autocomplete="off"
+
+                >
+
+
+
+                <label for="player-number">
+
+                  Numéro du maillot
+
+                </label>
+
+
+
+                <input
+
+                  id="player-number"
+
+                  type="number"
+
+                  min="1"
+
+                  max="99"
+
+                  step="1"
+
+                  value="1"
+
+                >
+
+
+
+                <label for="player-color">
+
+                  Couleur du joueur
+
+                </label>
+
+
+
+                <input
+
+                  id="player-color"
+
+                  type="color"
+
+                  value="#efb52d"
+
+                >
+
+
+
+              </div>
+
+
+
+              <p class="tactics-tip">
+
+                Les modifications apparaîtront sur le terrain.
+
+                Clique sur <strong>Enregistrer</strong>
+
+                pour les conserver dans ton carnet.
+
+              </p>
+
+
+
+            </div>
+
+
+
+            <!-- CARNET TACTIQUE -->
+
+
+
+            <div class="tactics-help">
+
+
+
+              <h4>Mon carnet tactique</h4>
+
+
+
+              <p>
+
+                Enregistre plusieurs formations et retrouve-les ici.
+
+              </p>
+
+
+
+              <div id="tactics-list" class="tactics-list">
+
+                <p>Aucune tactique enregistrée.</p>
+
+              </div>
+
+
+
+              <p class="tactics-tip">
+
+                Sélectionne une tactique pour l'afficher sur le terrain.
+
+              </p>
+
+
+
+              <div class="drawing-help">
+
+
+
+                <h4>Comment dessiner ?</h4>
+
+
+
+                <p>
+
+                  <strong>Déplacer :</strong>
+
+                  repositionne librement tes joueurs.
+
+                </p>
+
+
+
+                <p>
+
+                  <strong>Déplacement :</strong>
+
+                  trace une flèche pour représenter une course.
+
+                </p>
+
+
+
+                <p>
+
+                  <strong>Passe :</strong>
+
+                  dessine une passe entre deux positions.
+
+                </p>
+
+
+
+                <p>
+
+                  <strong>Zone :</strong>
+
+                  délimite une zone tactique sur le terrain.
+
+                </p>
+
+
+
+                <p>
+
+                  <strong>Annuler :</strong>
+
+                  supprime le dernier dessin.
+
+                </p>
+
+
+
+                <p>
+
+                  <strong>Exporter en PNG :</strong>
+
+                  télécharge une image de la tactique affichée.
+
+                </p>
+
+
+
+              </div>
+
+
+
+              <div class="drawing-help">
+
+
+
+                <h4>Protéger mon carnet</h4>
+
+
+
+                <p>
+
+                  <strong>Sauvegarder mon carnet :</strong>
+
+                  télécharge un fichier JSON contenant
+
+                  toutes tes tactiques enregistrées.
+
+                </p>
+
+
+
+                <p>
+
+                  <strong>Restaurer un carnet :</strong>
+
+                  importe une sauvegarde JSON pour récupérer
+
+                  tes formations et leurs dessins.
+
+                </p>
+
+
+
+                <p>
+
+                  Conserve ton fichier de sauvegarde
+
+                  dans un endroit sûr.
+
+                </p>
+
+
+
+              </div>
+
+
+
+            </div>
+
+
+
+          </div>
+
+
+
+        </div>
+
+
+
+      </section>
+
+
+
+      <!-- ENTRAÎNEMENTS -->
+
+
+
+      <section class="page" id="entrainements">
+
+
+
+        <div class="workspace-header">
+
+
+
+          <span class="workspace-icon">◎</span>
+
+
+
+          <div>
+
+            <p class="eyebrow">ESPACE 02</p>
+
+            <h3>Entraînements U10–U11</h3>
+
+            <p>Prépare tes séances et développe tes exercices.</p>
+
+          </div>
+
+
+
+        </div>
+
+
+
+        <div class="workspace-panel">
+
+
+
+          <div class="placeholder-icon">📋</div>
+
+
+
+          <h4>Ton carnet d'entraîneur</h4>
+
+
+
+          <p>
+
+            Prochaine étape : créer des séances avec leurs objectifs,
+
+            leur durée, leurs exercices et leurs consignes.
+
+          </p>
+
+
+
+        </div>
+
+
+
+      </section>
+
+
+
+      <!-- ANALYSE VIDÉO -->
+
+
+
+      <section class="page" id="analyse">
+
+
+
+        <div class="workspace-header">
+
+
+
+          <span class="workspace-icon">▶</span>
+
+
+
+          <div>
+
+            <p class="eyebrow">ESPACE 03</p>
+
+            <h3>Analyse vidéo</h3>
+
+            <p>Observe, décortique et comprends le jeu.</p>
+
+          </div>
+
+
+
+        </div>
+
+
+
+        <div class="workspace-panel">
+
+
+
+          <div class="placeholder-icon">🎬</div>
+
+
+
+          <h4>Ton centre d'analyse</h4>
+
+
+
+          <p>
+
+            Prochaine étape : importer une vidéo autorisée,
+
+            contrôler sa lecture et annoter les situations tactiques.
+
+          </p>
+
+
+
+        </div>
+
+
+
+      </section>
+
+
+
+    </main>
+
+
+
+  </div>
+
+
 
 </body>
+
 </html>
