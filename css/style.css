@@ -1751,3 +1751,67 @@ button {
     max-width: none !important;
   }
 }
+
+
+/* TACTIX - Champs modernes */
+
+input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="range"]),
+textarea,
+select {
+  font: inherit;
+  color: var(--text);
+  background: #192b24;
+  border: 1px solid #365748;
+  border-radius: 12px;
+  padding: 12px 15px;
+  min-height: 46px;
+  max-width: 100%;
+  outline: none;
+  transition: border-color 0.2s ease,
+              box-shadow 0.2s ease,
+              background-color 0.2s ease;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #9bafa3;
+  opacity: 1;
+}
+
+input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="range"]):focus,
+textarea:focus,
+select:focus {
+  border-color: var(--accent);
+  background: #1d3329;
+  box-shadow: 0 0 0 3px rgba(124, 240, 173, 0.16);
+}
+
+textarea {
+  min-height: 110px;
+  resize: vertical;
+  line-height: 1.6;
+}
+
+select {
+  cursor: pointer;
+}
+
+select option {
+  background: #192b24;
+  color: #f1f7f3;
+}
+
+input:disabled,
+textarea:disabled,
+select:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+@media (max-width: 600px) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="range"]),
+  textarea,
+  select {
+    width: 100%;
+  }
+}
