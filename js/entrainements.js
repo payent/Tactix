@@ -29,6 +29,192 @@ document.addEventListener("DOMContentLoaded", () => {
     </form>
   `;
 
+  // TACTIX - Bibliotheque d'exercices U10-U11
+  const libraryPanel = document.createElement("div");
+  libraryPanel.id = "training-exercise-library";
+
+  const libraryTitle = document.createElement("h4");
+  libraryTitle.textContent = "Bibliothèque d'exercices U10–U11";
+
+  const exerciseSelect = document.createElement("select");
+  exerciseSelect.id = "training-exercise-select";
+
+  const defaultOption = document.createElement("option");
+  defaultOption.value = "";
+  defaultOption.textContent = "Choisir un exercice";
+  exerciseSelect.appendChild(defaultOption);
+
+  const exercises = window.TACTIX_EXERCICES || [];
+
+  exercises.forEach(exercise => {
+    const option = document.createElement("option");
+    option.value = exercise.id;
+    option.textContent =
+      exercise.categorie + " — " + exercise.nom + " (" + exercise.duree + " min)";
+    exerciseSelect.appendChild(option);
+  });
+
+  const categorySelect = document.createElement("select");
+  categorySelect.id = "training-category-select";
+
+  const allCategories = document.createElement("option");
+  allCategories.value = "";
+  allCategories.textContent = "Toutes les catégories";
+  categorySelect.appendChild(allCategories);
+
+  [...new Set(exercises.map(exercise => exercise.categorie))]
+    .sort((a, b) => a.localeCompare(b, "fr"))
+    .forEach(category => {
+      const option = document.createElement("option");
+      option.value = category;
+      option.textContent = category;
+      categorySelect.appendChild(option);
+    });
+
+  categorySelect.addEventListener("change", () => {
+    exerciseSelect.replaceChildren();
+
+    const placeholder = document.createElement("option");
+    placeholder.value = "";
+    placeholder.textContent = "Choisir un exercice";
+    exerciseSelect.appendChild(placeholder);
+
+    exercises
+      .filter(exercise =>
+        !categorySelect.value ||
+        exercise.categorie === categorySelect.value
+      )
+      .forEach(exercise => {
+        const option = document.createElement("option");
+        option.value = exercise.id;
+        option.textContent =
+          exercise.nom + " (" + exercise.duree + " min)";
+        exerciseSelect.appendChild(option);
+      });
+
+    exerciseSelect.dispatchEvent(new Event("change"));
+  });
+
+  libraryPanel.append(libraryTitle, categorySelect, exerciseSelect);
+  panel.appendChild(libraryPanel);
+
+  const exerciseDetails = document.createElement("div");
+  exerciseDetails.id = "training-exercise-details";
+  exerciseDetails.style.marginTop = "12px";
+  libraryPanel.appendChild(exerciseDetails);
+
+  exerciseSelect.addEventListener("change", () => {
+    exerciseDetails.replaceChildren();
+
+    const exercise = exercises.find(
+      item => item.id === exerciseSelect.value
+    );
+
+    if (!exercise) return;
+
+    const name = document.createElement("h4");
+    name.textContent = exercise.nom;
+
+    const duration = document.createElement("p");
+    duration.textContent = "Durée : " + exercise.duree + " minutes";
+
+    const objective = document.createElement("p");
+    objective.textContent = "Objectif : " + exercise.objectif;
+
+    const instructions = document.createElement("p");
+    instructions.textContent = "Consignes : " + exercise.consignes;
+
+    exerciseDetails.append(name, duration, objective, instructions);
+  });
+  // Exercices de la séance en préparation
+  let selectedExercises = [];
+
+  const sessionExercisesPanel = document.createElement("div");
+  sessionExercisesPanel.id = "training-session-exercises";
+
+  const sessionExercisesTitle = document.createElement("h4");
+  sessionExercisesTitle.textContent = "Exercices de la séance";
+
+  const totalDuration = document.createElement("p");
+  totalDuration.id = "training-total-duration";
+
+  const selectedExercisesList = document.createElement("ol");
+  selectedExercisesList.id = "training-selected-exercises";
+
+  const addExerciseButton = document.createElement("button");
+  addExerciseButton.type = "button";
+  addExerciseButton.textContent = "Ajouter à la séance";
+
+  function renderSelectedExercises() {
+    selectedExercisesList.replaceChildren();
+
+    selectedExercises.forEach((exercise, index) => {
+      const item = document.createElement("li");
+      item.textContent = exercise.nom + " — " + exercise.duree + " min ";
+
+      const upButton = document.createElement("button");
+      upButton.type = "button";
+      upButton.textContent = "↑";
+      upButton.disabled = index === 0;
+      upButton.setAttribute("aria-label", "Monter " + exercise.nom);
+      upButton.addEventListener("click", () => {
+        [selectedExercises[index - 1], selectedExercises[index]] =
+          [selectedExercises[index], selectedExercises[index - 1]];
+        renderSelectedExercises();
+      });
+
+      const downButton = document.createElement("button");
+      downButton.type = "button";
+      downButton.textContent = "↓";
+      downButton.disabled = index === selectedExercises.length - 1;
+      downButton.setAttribute("aria-label", "Descendre " + exercise.nom);
+      downButton.addEventListener("click", () => {
+        [selectedExercises[index + 1], selectedExercises[index]] =
+          [selectedExercises[index], selectedExercises[index + 1]];
+        renderSelectedExercises();
+      });
+
+      const removeButton = document.createElement("button");
+      removeButton.type = "button";
+      removeButton.textContent = "Retirer";
+      removeButton.addEventListener("click", () => {
+        selectedExercises.splice(index, 1);
+        renderSelectedExercises();
+      });
+
+      item.append(upButton, downButton, removeButton);
+      selectedExercisesList.appendChild(item);
+    });
+
+    const minutes = selectedExercises.reduce(
+      (sum, exercise) => sum + Number(exercise.duree || 0), 0
+    );
+    totalDuration.textContent =
+      "Durée totale des exercices : " + minutes + " minutes";
+  }
+
+  addExerciseButton.addEventListener("click", () => {
+    const exercise = exercises.find(
+      item => item.id === exerciseSelect.value
+    );
+
+    if (!exercise) {
+      alert("Choisis d'abord un exercice dans la bibliothèque.");
+      return;
+    }
+
+    selectedExercises.push({ ...exercise });
+    renderSelectedExercises();
+  });
+
+  sessionExercisesPanel.append(
+    sessionExercisesTitle,
+    addExerciseButton,
+    selectedExercisesList,
+    totalDuration
+  );
+  libraryPanel.appendChild(sessionExercisesPanel);
+  renderSelectedExercises();
   // TACTIX - Carnet des seances
   const sessionsList = document.createElement("div");
   sessionsList.id = "training-sessions-list";
@@ -104,6 +290,12 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("training-objective").value = session.objective || "";
         document.getElementById("training-instructions").value = session.instructions || "";
 
+        selectedExercises = Array.isArray(session.exercises)
+          ? session.exercises.map(exercise => ({ ...exercise }))
+          : [];
+
+        renderSelectedExercises();
+
         const form = document.getElementById("training-form");
         form.dataset.editId = String(session.id);
         form.querySelector('button[type="submit"]').textContent =
@@ -127,7 +319,11 @@ document.addEventListener("DOMContentLoaded", () => {
         title: document.getElementById("training-title").value.trim(),
         duration: Number(document.getElementById("training-duration").value),
         objective: document.getElementById("training-objective").value.trim(),
-        instructions: document.getElementById("training-instructions").value.trim()
+        instructions: document.getElementById("training-instructions").value.trim(),
+        exercises: selectedExercises.map(exercise => ({ ...exercise })),
+        exerciseDuration: selectedExercises.reduce(
+          (total, exercise) => total + Number(exercise.duree || 0), 0
+        )
       };
 
       try {
