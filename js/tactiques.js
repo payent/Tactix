@@ -2409,3 +2409,238 @@ resetAnimationButton.addEventListener("click", () => {
   animateMovesButton.disabled = false;
   animateMovesButton.textContent = "▶ Animer les déplacements";
 });
+
+// TACTIX — Bouton du mode pressing
+let tactixPressingActive = false;
+
+const tactixPressingButton = document.createElement("button");
+tactixPressingButton.type = "button";
+tactixPressingButton.className = "drawing-tool";
+tactixPressingButton.textContent = "🔴 Activer le pressing";
+
+formationToolbar.appendChild(tactixPressingButton);
+
+// Choisir l'equipe qui effectue le pressing
+const tactixPressingTeamSelect = document.createElement("select");
+tactixPressingTeamSelect.id = "tactix-pressing-team";
+tactixPressingTeamSelect.className = "drawing-tool";
+tactixPressingTeamSelect.setAttribute("aria-label", "Equipe qui presse");
+
+tactixPressingTeamSelect.innerHTML = `
+  <option value="red">🔴 Pressing rouge</option>
+  <option value="blue">🔵 Pressing bleu</option>
+`;
+
+formationToolbar.appendChild(tactixPressingTeamSelect);
+
+// TACTIX - Intensite du pressing
+const tactixPressingIntensitySelect = document.createElement("select");
+tactixPressingIntensitySelect.id = "tactix-pressing-intensity";
+tactixPressingIntensitySelect.className = "drawing-tool";
+tactixPressingIntensitySelect.setAttribute("aria-label", "Intensite du pressing");
+tactixPressingIntensitySelect.innerHTML = `
+  <option value="low">🟢 Faible</option>
+  <option value="medium" selected>🟡 Moyen</option>
+  <option value="high">🔴 Intense</option>
+`;
+formationToolbar.appendChild(tactixPressingIntensitySelect);
+
+tactixPressingButton.addEventListener("click", () => {
+  if (!tactixPressingActive && !tactixAnimationStart) {
+    tactixAnimationStart = {
+      players: players.map(player => ({
+        id: player.id, x: player.x, y: player.y
+      })),
+      opponents: tactixOpponents.map(player => ({
+        id: player.id, x: player.x, y: player.y
+      })),
+      ball: { x: tactixBall.x, y: tactixBall.y }
+    };
+  }
+
+  tactixPressingActive = !tactixPressingActive;
+
+  tactixPressingButton.textContent = tactixPressingActive
+    ? "⏸ Arrêter le pressing"
+    : "🔴 Activer le pressing";
+});
+
+// TACTIX — Pressing haut organisé
+setInterval(() => {
+  if (
+    !tactixPressingActive ||
+    tactixPressingTeamSelect.value !== "red" ||
+    !tactixOpponentsVisible ||
+    !tactixBallVisible ||
+    tactixOpponents.length === 0
+  ) return;
+
+  const ball = tactixBall;
+  const players = tactixOpponents;
+
+  // Le gardien reste à sa place.
+  const fieldPlayers = players.filter(p => p.number !== 1);
+
+  // Positions de référence de l'équipe adverse.
+  const reference = tactixMakeOpponents();
+
+  // Les attaquants sont les joueurs les plus avancés
+  // vers le camp bleu (coordonnées Y les plus grandes).
+  const sorted = [...fieldPlayers].sort((a, b) => b.y - a.y);
+
+  const attackerCount = currentMode === 11 ? 3 : 2;
+  const attackers = sorted.slice(0, attackerCount);
+
+  // Parmi les attaquants, le plus proche presse le ballon.
+  const presser = attackers.reduce((best, p) => {
+    if (!best) return p;
+
+    const d = Math.hypot(p.x - ball.x, p.y - ball.y);
+    const bestD = Math.hypot(best.x - ball.x, best.y - ball.y);
+
+    return d < bestD ? p : best;
+  }, null);
+
+  fieldPlayers.forEach(player => {
+    const base = reference.find(p => p.id === player.id);
+    if (!base) return;
+
+    let targetX;
+    let targetY;
+
+    if (player === presser) {
+      // Le premier attaquant presse le ballon.
+      targetX = ball.x;
+      targetY = ball.y;
+
+    } else {
+      // Toute l'équipe coulisse vers le ballon.
+      const horizontalShift = (ball.x - 50) * 0.35;
+
+      targetX = base.x + horizontalShift;
+
+      if (attackers.includes(player)) {
+        // Les autres attaquants ferment les passes.
+        targetY = Math.max(base.y, ball.y - 8);
+      } else {
+        // Milieux et défenseurs avancent ensemble,
+        // sans dépasser leur ligne de couverture.
+        const forwardShift = Math.max(0, ball.y - 50) * 0.35;
+        targetY = base.y + forwardShift;
+      }
+    }
+
+    targetX = clamp(targetX, 5, 95);
+    targetY = clamp(targetY, 4, 96);
+
+    const dx = targetX - player.x;
+    const dy = targetY - player.y;
+    const distance = Math.hypot(dx, dy);
+
+    if (distance < 0.5) return;
+
+    const pressingSpeed = {
+      low: 0.15,
+      medium: 0.3,
+      high: 0.5
+    }[tactixPressingIntensitySelect.value] || 0.3;
+
+    const speed = Math.min(pressingSpeed, distance);
+
+    player.x += (dx / distance) * speed;
+    player.y += (dy / distance) * speed;
+
+    const index = players.indexOf(player);
+    const element = tactixOpponentsLayer.children[index];
+
+    if (element) {
+      element.style.left = player.x + "%";
+      element.style.top = player.y + "%";
+    }
+  });
+}, 40);
+// TACTIX - Pressing haut bleu
+setInterval(() => {
+  if (
+    !tactixPressingActive ||
+    tactixPressingTeamSelect.value !== "blue" ||
+    !tactixBallVisible ||
+    players.length === 0
+  ) return;
+
+  const fieldPlayers = players.filter(player => player.id !== 1);
+  if (!fieldPlayers.length) return;
+
+  const reference = getDefaultPlayers();
+
+  // Les attaquants bleus sont les plus avances vers le haut du terrain.
+  const sorted = [...fieldPlayers].sort((a, b) => a.y - b.y);
+  const attackerCount = currentMode === 11 ? 3 : 2;
+  const attackers = sorted.slice(0, attackerCount);
+
+  // L'attaquant le plus proche presse le ballon.
+  const presser = attackers.reduce((best, player) => {
+    if (!best) return player;
+
+    const distance = Math.hypot(
+      player.x - tactixBall.x,
+      player.y - tactixBall.y
+    );
+
+    const bestDistance = Math.hypot(
+      best.x - tactixBall.x,
+      best.y - tactixBall.y
+    );
+
+    return distance < bestDistance ? player : best;
+  }, null);
+
+  fieldPlayers.forEach(player => {
+    const base = reference.find(p => p.id === player.id);
+    if (!base) return;
+
+    let targetX;
+    let targetY;
+
+    if (player === presser) {
+      targetX = tactixBall.x;
+      targetY = tactixBall.y;
+    } else {
+      // L'equipe coulisse vers le ballon.
+      targetX = base.x + (tactixBall.x - 50) * 0.35;
+
+      if (attackers.includes(player)) {
+        // Les autres attaquants ferment les passes.
+        targetY = Math.min(base.y, tactixBall.y + 8);
+      } else {
+        // Milieux et defenseurs accompagnent le pressing.
+        const forwardShift =
+          Math.max(0, 50 - tactixBall.y) * 0.35;
+
+        targetY = base.y - forwardShift;
+      }
+    }
+
+    targetX = clamp(targetX, 5, 95);
+    targetY = clamp(targetY, 4, 96);
+
+    const dx = targetX - player.x;
+    const dy = targetY - player.y;
+    const distance = Math.hypot(dx, dy);
+
+    if (distance < 0.5) return;
+
+    const pressingSpeed = {
+      low: 0.15,
+      medium: 0.3,
+      high: 0.5
+    }[tactixPressingIntensitySelect.value] || 0.3;
+
+    const speed = Math.min(pressingSpeed, distance);
+
+    player.x += (dx / distance) * speed;
+    player.y += (dy / distance) * speed;
+  });
+
+  renderPlayers();
+}, 40);
