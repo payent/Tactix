@@ -155,6 +155,8 @@ function refreshFormations() {
 }
 
 function applyFormation() {
+  // La nouvelle mise en place devient la référence de la prochaine animation.
+  if (typeof tactixAnimationStart !== "undefined") tactixAnimationStart = null;
   const lines = formationsByMode[currentMode][formationSelect.value];
   if (!lines || players.length !== currentMode) return;
 
@@ -183,6 +185,8 @@ function applyFormation() {
 formationButton.addEventListener("click", applyFormation);
 
 function changeMode(mode) {
+  // La nouvelle mise en place devient la référence de la prochaine animation.
+  if (typeof tactixAnimationStart !== "undefined") tactixAnimationStart = null;
   if (mode !== 8 && mode !== 11) return;
   if (mode === currentMode) return;
 
@@ -1174,6 +1178,8 @@ function renderTacticsList() {
 }
 
 function openTactic(id) {
+  // La nouvelle mise en place devient la référence de la prochaine animation.
+  if (typeof tactixAnimationStart !== "undefined") tactixAnimationStart = null;
   const tactic = tactics.find(
     item => item.id === id
   );
@@ -1202,6 +1208,8 @@ function openTactic(id) {
 }
 
 function newTactic() {
+  // La nouvelle mise en place devient la référence de la prochaine animation.
+  if (typeof tactixAnimationStart !== "undefined") tactixAnimationStart = null;
   currentTacticId = null;
 
   tacticName.value = "Nouvelle tactique — Football à " + currentMode;
@@ -1319,6 +1327,8 @@ function deleteTactic(id) {
 }
 
 function resetPlayers() {
+  // La nouvelle mise en place devient la référence de la prochaine animation.
+  if (typeof tactixAnimationStart !== "undefined") tactixAnimationStart = null;
   const confirmed = confirm(
     "Remettre les joueurs à leurs positions de départ ?\n\n" +
     "Les prénoms, numéros et couleurs seront conservés."
@@ -2077,6 +2087,157 @@ if (tactics.some(tactic => tactic.players.length === 8)) {
 }
 
 
+// TACTIX — Ballon déplaçable et animation des passes.
+// Le ballon est indépendant des joueurs et reste sur le terrain.
+let tactixBall = { x: 50, y: 48 };
+const tactixBallElement = document.createElement("div");
+tactixBallElement.id = "tactix-ball";
+tactixBallElement.textContent = "⚽";
+tactixBallElement.title = "Déplacer le ballon";
+tactixBallElement.setAttribute("aria-label", "Ballon déplaçable");
+tactixBallElement.style.cssText = "display:none;position:absolute;z-index:5;left:50%;top:48%;transform:translate(-50%,-50%);font-size:28px;line-height:1;cursor:grab;touch-action:none;user-select:none;filter:drop-shadow(0 2px 2px #000a);";
+pitch.appendChild(tactixBallElement);
+function renderTactixBall() {
+  tactixBallElement.style.left = tactixBall.x + "%";
+  tactixBallElement.style.top = tactixBall.y + "%";
+}
+tactixBallElement.addEventListener("pointerdown", event => {
+  if (activeTool !== "move" || (event.pointerType === "mouse" && event.button !== 0)) return;
+  event.preventDefault();
+  event.stopPropagation();
+  tactixBallElement.setPointerCapture(event.pointerId);
+  tactixBallElement.style.cursor = "grabbing";
+  const moveBall = e => {
+    if (e.pointerId !== event.pointerId) return;
+    const point = getPitchPoint(e);
+    tactixBall.x = clamp(point.x, 3, 97);
+    tactixBall.y = clamp(point.y, 3, 97);
+    renderTactixBall();
+  };
+  const stopBall = e => {
+    if (e.pointerId !== event.pointerId) return;
+    tactixBallElement.removeEventListener("pointermove", moveBall);
+    tactixBallElement.removeEventListener("pointerup", stopBall);
+    tactixBallElement.removeEventListener("pointercancel", stopBall);
+    tactixBallElement.style.cursor = "grab";
+  };
+  tactixBallElement.addEventListener("pointermove", moveBall);
+  tactixBallElement.addEventListener("pointerup", stopBall);
+  tactixBallElement.addEventListener("pointercancel", stopBall);
+});
+
+// Afficher ou masquer le ballon à la demande (absent au démarrage).
+const toggleBallButton = document.createElement("button");
+toggleBallButton.type = "button";
+toggleBallButton.className = "drawing-tool";
+toggleBallButton.textContent = "⚽ Afficher le ballon";
+toggleBallButton.title = "Ajouter ou masquer le ballon sur le terrain";
+toggleBallButton.setAttribute("aria-pressed", "false");
+const passToolButton = document.querySelector('.drawing-tool[data-tool="pass"]');
+if (passToolButton && passToolButton.parentElement) {
+  passToolButton.insertAdjacentElement("afterend", toggleBallButton);
+} else if (pitch.parentElement) {
+  pitch.parentElement.insertBefore(toggleBallButton, pitch);
+}
+let tactixBallVisible = false;
+toggleBallButton.addEventListener("click", () => {
+  tactixBallVisible = !tactixBallVisible;
+  tactixBallElement.style.display = tactixBallVisible ? "block" : "none";
+  toggleBallButton.textContent = tactixBallVisible ? "⚽ Masquer le ballon" : "⚽ Afficher le ballon";
+  toggleBallButton.setAttribute("aria-pressed", String(tactixBallVisible));
+});
+
+// TACTIX — Équipe adverse (rouge), mobile et animable.
+let tactixOpponentsVisible = false;
+let tactixOpponents = [];
+const tactixOpponentsLayer = document.createElement("div");
+tactixOpponentsLayer.id = "tactix-opponents-layer";
+tactixOpponentsLayer.style.cssText = "position:absolute;inset:0;pointer-events:none;z-index:4;";
+pitch.appendChild(tactixOpponentsLayer);
+
+function tactixMakeOpponents() {
+  const source = currentMode === 11 ? defaultPlayers11 : defaultPlayers;
+  return source.map(player => ({
+    id: player.id,
+    x: player.x,
+    y: clamp(100 - player.y, 4, 96),
+    name: "",
+    number: player.number,
+    color: "#e34848"
+  }));
+}
+
+function tactixRenderOpponents() {
+  tactixOpponentsLayer.innerHTML = "";
+  if (!tactixOpponentsVisible) return;
+  tactixOpponents.forEach(opponent => {
+    const element = document.createElement("div");
+    element.className = "tactic-player";
+    element.textContent = String(opponent.number);
+    element.title = "Adversaire n°" + opponent.number;
+    element.setAttribute("aria-label", element.title);
+    element.style.cssText = "position:absolute;pointer-events:auto;touch-action:none;cursor:grab;";
+    element.style.left = opponent.x + "%";
+    element.style.top = opponent.y + "%";
+    element.style.backgroundColor = opponent.color;
+    element.style.color = "#fff";
+    element.style.border = "2px solid #fff";
+    element.addEventListener("pointerdown", event => {
+      if (activeTool !== "move" || (event.pointerType === "mouse" && event.button !== 0)) return;
+      event.preventDefault();
+      event.stopPropagation();
+      element.setPointerCapture(event.pointerId);
+      element.style.cursor = "grabbing";
+      const move = e => {
+        if (e.pointerId !== event.pointerId) return;
+        const point = getPitchPoint(e);
+        opponent.x = clamp(point.x, 5, 95);
+        opponent.y = clamp(point.y, 4, 96);
+        element.style.left = opponent.x + "%";
+        element.style.top = opponent.y + "%";
+      };
+      const stop = e => {
+        if (e.pointerId !== event.pointerId) return;
+        element.removeEventListener("pointermove", move);
+        element.removeEventListener("pointerup", stop);
+        element.removeEventListener("pointercancel", stop);
+        element.style.cursor = "grab";
+      };
+      element.addEventListener("pointermove", move);
+      element.addEventListener("pointerup", stop);
+      element.addEventListener("pointercancel", stop);
+    });
+    tactixOpponentsLayer.appendChild(element);
+  });
+}
+
+const tactixOpponentsButton = document.createElement("button");
+tactixOpponentsButton.type = "button";
+tactixOpponentsButton.className = "drawing-tool";
+tactixOpponentsButton.textContent = "+ Ajouter l'équipe adverse";
+tactixOpponentsButton.setAttribute("aria-pressed", "false");
+formationToolbar.appendChild(tactixOpponentsButton);
+tactixOpponentsButton.addEventListener("click", () => {
+  tactixOpponentsVisible = !tactixOpponentsVisible;
+  if (tactixOpponentsVisible && tactixOpponents.length !== currentMode) {
+    tactixOpponents = tactixMakeOpponents();
+  }
+  tactixOpponentsButton.textContent = tactixOpponentsVisible
+    ? "Masquer l'équipe adverse" : "+ Ajouter l'équipe adverse";
+  tactixOpponentsButton.setAttribute("aria-pressed", String(tactixOpponentsVisible));
+  tactixRenderOpponents();
+});
+
+// Les changements de mode adaptent également le nombre d'adversaires.
+[mode8Button, mode11Button].forEach(button => {
+  if (!button) return;
+  button.addEventListener("click", () => {
+    tactixOpponents = tactixMakeOpponents();
+    tactixRenderOpponents();
+    tactixAnimationStart = null;
+  });
+});
+
 // ============================================
 // TACTIX — ANIMATION DES FLÈCHES DE DÉPLACEMENT
 // ============================================
@@ -2096,6 +2257,16 @@ if (movementToolbar) {
   movementArrowButton.insertAdjacentElement("afterend", animateMovesButton);
 }
 
+// Les positions mémorisées correspondent au début de la dernière animation.
+let tactixAnimationStart = null;
+const resetAnimationButton = document.createElement("button");
+resetAnimationButton.type = "button";
+resetAnimationButton.className = "drawing-tool";
+resetAnimationButton.textContent = "↩ Replacer les joueurs";
+resetAnimationButton.title = "Revenir aux positions d'avant la dernière animation";
+resetAnimationButton.disabled = false;
+animateMovesButton.insertAdjacentElement("afterend", resetAnimationButton);
+
 let tactixMovementAnimation = null;
 animateMovesButton.addEventListener("click", () => {
   if (tactixMovementAnimation !== null) {
@@ -2103,41 +2274,70 @@ animateMovesButton.addEventListener("click", () => {
     tactixMovementAnimation = null;
   }
 
-  // Ne pas animer les passes, les zones ou les centres courbés.
+  // Animer les courses, les passes et les centres courbés.
   const movementArrows = drawings.filter(d => d.type === "arrow");
-  const availablePlayers = new Set(players.map(p => p.id));
+  const animationPlayers = [
+    ...players.map(player => ({ player, team: "home" })),
+    ...(tactixOpponentsVisible ? tactixOpponents.map(player => ({ player, team: "away" })) : [])
+  ];
+  const availablePlayers = new Set(animationPlayers.map(entry => entry.team + entry.player.id));
   const runs = [];
   for (const arrow of movementArrows) {
     let nearest = null;
     let shortestDistance = Infinity;
-    for (const player of players) {
-      if (!availablePlayers.has(player.id)) continue;
+    for (const entry of animationPlayers) {
+      const player = entry.player;
+      if (!availablePlayers.has(entry.team + player.id)) continue;
       const distance = Math.hypot(player.x - arrow.x1, player.y - arrow.y1);
       if (distance < shortestDistance) {
-        nearest = player;
+        nearest = entry;
         shortestDistance = distance;
       }
     }
     // La flèche doit commencer à proximité du joueur concerné.
     if (!nearest || shortestDistance > 12) continue;
-    availablePlayers.delete(nearest.id);
+    availablePlayers.delete(nearest.team + nearest.player.id);
     runs.push({
-      player: nearest,
-      x1: nearest.x,
-      y1: nearest.y,
+      player: nearest.player,
+      x1: nearest.player.x,
+      y1: nearest.player.y,
       x2: clamp(arrow.x2, 5, 95),
       y2: clamp(arrow.y2, 4, 96)
     });
   }
 
-  if (!runs.length) {
-    animateMovesButton.textContent = "Trace une flèche depuis un joueur";
+  // Une passe ou un centre part du ballon placé près de la flèche.
+  // Les centres suivent exactement la courbe de Bézier du dessin.
+  const ballArrow = tactixBallVisible && drawings.find(d =>
+    (d.type === "pass" || isCurvedDrawing(d)) &&
+    Math.hypot(tactixBall.x - d.x1, tactixBall.y - d.y1) <= 12
+  );
+  const ballPass = ballArrow ? {
+    x1: tactixBall.x,
+    y1: tactixBall.y,
+    x2: clamp(ballArrow.x2, 3, 97),
+    y2: clamp(ballArrow.y2, 3, 97),
+    control: isCurvedDrawing(ballArrow) ? getCurveControl(ballArrow) : null
+  } : null;
+
+  if (!runs.length && !ballPass) {
+    animateMovesButton.textContent = "Trace une flèche depuis un joueur ou le ballon";
     setTimeout(() => {
       animateMovesButton.textContent = "▶ Animer les déplacements";
     }, 2200);
     return;
   }
 
+  // Garder la première position de départ tant que l'utilisateur n'a pas
+  // demandé le replacement : même après plusieurs clics sur « Animer ».
+  if (!tactixAnimationStart) {
+    tactixAnimationStart = {
+      players: players.map(player => ({ id: player.id, x: player.x, y: player.y })),
+      opponents: tactixOpponents.map(player => ({ id: player.id, x: player.x, y: player.y })),
+      ball: { x: tactixBall.x, y: tactixBall.y }
+    };
+  }
+  resetAnimationButton.disabled = false;
   animateMovesButton.disabled = true;
   animateMovesButton.textContent = "⏵ Animation en cours…";
   const duration = 1800;
@@ -2151,6 +2351,20 @@ animateMovesButton.addEventListener("click", () => {
       run.player.y = run.y1 + (run.y2 - run.y1) * eased;
     }
     renderPlayers();
+    tactixRenderOpponents();
+    if (ballPass) {
+      if (ballPass.control) {
+        const inverse = 1 - eased;
+        tactixBall.x = inverse * inverse * ballPass.x1 +
+          2 * inverse * eased * ballPass.control.x + eased * eased * ballPass.x2;
+        tactixBall.y = inverse * inverse * ballPass.y1 +
+          2 * inverse * eased * ballPass.control.y + eased * eased * ballPass.y2;
+      } else {
+        tactixBall.x = ballPass.x1 + (ballPass.x2 - ballPass.x1) * eased;
+        tactixBall.y = ballPass.y1 + (ballPass.y2 - ballPass.y1) * eased;
+      }
+      renderTactixBall();
+    }
     if (progress < 1) {
       tactixMovementAnimation = requestAnimationFrame(animateFrame);
     } else {
@@ -2160,4 +2374,38 @@ animateMovesButton.addEventListener("click", () => {
     }
   };
   tactixMovementAnimation = requestAnimationFrame(animateFrame);
+});
+
+// Replacer les joueurs et le ballon comme avant l'animation, sans modifier les flèches.
+resetAnimationButton.addEventListener("click", () => {
+  if (!tactixAnimationStart) {
+    resetAnimationButton.textContent = "Lance d’abord une animation";
+    setTimeout(() => { resetAnimationButton.textContent = "↩ Replacer les joueurs"; }, 1800);
+    return;
+  }
+  if (tactixMovementAnimation !== null) {
+    cancelAnimationFrame(tactixMovementAnimation);
+    tactixMovementAnimation = null;
+  }
+  for (const start of tactixAnimationStart.players) {
+    const player = players.find(item => item.id === start.id);
+    if (player) {
+      player.x = start.x;
+      player.y = start.y;
+    }
+  }
+  if (tactixAnimationStart.opponents) {
+    for (const start of tactixAnimationStart.opponents) {
+      const opponent = tactixOpponents.find(item => item.id === start.id);
+      if (opponent) { opponent.x = start.x; opponent.y = start.y; }
+    }
+  }
+  tactixRenderOpponents();
+  tactixBall.x = tactixAnimationStart.ball.x;
+  tactixBall.y = tactixAnimationStart.ball.y;
+  renderPlayers();
+  renderTactixBall();
+  tactixAnimationStart = null;
+  animateMovesButton.disabled = false;
+  animateMovesButton.textContent = "▶ Animer les déplacements";
 });

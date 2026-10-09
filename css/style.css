@@ -1701,3 +1701,53 @@ button {
     max-width: 85px;
   }
 }
+
+
+/* TACTIX — disposition stable du laboratoire sur ordinateur */
+@media (min-width: 701px) {
+  #tactiques .tactics-layout {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    justify-content: flex-start !important;
+    align-items: flex-start !important;
+    gap: 20px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  #tactiques #interactive-pitch {
+    flex: 0 1 420px !important;
+    width: min(420px, 52%) !important;
+    min-width: 0 !important;
+    max-width: 420px !important;
+    margin: 0 !important;
+  }
+
+  #tactiques .tactics-side-panels {
+    flex: 1 1 260px !important;
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: 380px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 20px !important;
+  }
+}
+
+@media (max-width: 700px) {
+  #tactiques .tactics-layout {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+  #tactiques #interactive-pitch {
+    width: 100% !important;
+    max-width: 420px !important;
+    margin: 0 auto !important;
+  }
+  #tactiques .tactics-side-panels {
+    width: 100% !important;
+    max-width: none !important;
+  }
+}
