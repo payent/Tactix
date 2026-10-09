@@ -222,7 +222,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
     selectedExercises.forEach((exercise, index) => {
       const item = document.createElement("li");
-      item.textContent = exercise.nom + " — " + exercise.duree + " min ";
+      item.className = "training-exercise-item";
+
+      const info = document.createElement("div");
+      info.className = "training-exercise-info";
+
+      const exerciseName = document.createElement("strong");
+      exerciseName.textContent = exercise.nom;
+
+      const exerciseDuration = document.createElement("span");
+      exerciseDuration.textContent = exercise.duree + " min";
+
+      info.append(exerciseName, exerciseDuration);
 
       const upButton = document.createElement("button");
       upButton.type = "button";
@@ -254,7 +265,11 @@ document.addEventListener("DOMContentLoaded", () => {
         renderSelectedExercises();
       });
 
-      item.append(upButton, downButton, removeButton);
+      const actions = document.createElement("div");
+      actions.className = "training-exercise-actions";
+      actions.append(upButton, downButton, removeButton);
+
+      item.append(info, actions);
       selectedExercisesList.appendChild(item);
     });
 

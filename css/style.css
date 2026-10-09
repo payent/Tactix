@@ -1876,3 +1876,74 @@ select:disabled {
     padding: 16px;
   }
 }
+
+/* TACTIX - Cartes des exercices de seance */
+
+#training-selected-exercises {
+  list-style: none;
+  padding: 0;
+  margin: 18px 0;
+  display: grid;
+  gap: 12px;
+}
+
+.training-exercise-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 16px 18px;
+  background: linear-gradient(145deg, #1c3228, #14251e);
+  border: 1px solid #365748;
+  border-radius: 14px;
+}
+
+.training-exercise-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.training-exercise-info strong {
+  color: var(--text);
+  font-size: 1rem;
+}
+
+.training-exercise-info span {
+  color: var(--accent);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.training-exercise-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.training-exercise-actions button {
+  padding: 8px 12px;
+  border: 1px solid #365748;
+  border-radius: 9px;
+  background: #243e31;
+  color: var(--text);
+  font: inherit;
+}
+
+.training-exercise-actions button:hover:not(:disabled) {
+  background: #365748;
+  border-color: var(--accent);
+}
+
+.training-exercise-actions button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+@media (max-width: 600px) {
+  .training-exercise-item {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
