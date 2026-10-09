@@ -154,19 +154,49 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (!exercise) return;
 
+    exerciseDetails.classList.add("exercise-detail-card");
+
     const name = document.createElement("h4");
+    name.className = "exercise-detail-title";
     name.textContent = exercise.nom;
 
-    const duration = document.createElement("p");
-    duration.textContent = "Durée : " + exercise.duree + " minutes";
+    const metadata = document.createElement("div");
+    metadata.className = "exercise-detail-meta";
 
-    const objective = document.createElement("p");
-    objective.textContent = "Objectif : " + exercise.objectif;
+    const category = document.createElement("span");
+    category.textContent = exercise.categorie;
 
-    const instructions = document.createElement("p");
-    instructions.textContent = "Consignes : " + exercise.consignes;
+    const duration = document.createElement("span");
+    duration.textContent = exercise.duree + " min";
 
-    exerciseDetails.append(name, duration, objective, instructions);
+    metadata.append(category, duration);
+
+    const objective = document.createElement("div");
+    objective.className = "exercise-detail-section";
+
+    const objectiveTitle = document.createElement("strong");
+    objectiveTitle.textContent = "Objectif";
+
+    const objectiveText = document.createElement("p");
+    objectiveText.textContent = exercise.objectif;
+    objective.append(objectiveTitle, objectiveText);
+
+    const instructions = document.createElement("div");
+    instructions.className = "exercise-detail-section";
+
+    const instructionsTitle = document.createElement("strong");
+    instructionsTitle.textContent = "Consignes";
+
+    const instructionsText = document.createElement("p");
+    instructionsText.textContent = exercise.consignes;
+    instructions.append(instructionsTitle, instructionsText);
+
+    exerciseDetails.append(
+      name,
+      metadata,
+      objective,
+      instructions
+    );
   });
   // Exercices de la séance en préparation
   let selectedExercises = [];

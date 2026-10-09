@@ -1815,3 +1815,64 @@ select:disabled {
     width: 100%;
   }
 }
+
+/* TACTIX - Fiches exercices modernes */
+
+.exercise-detail-card:not(:empty) {
+  background: linear-gradient(145deg, #1c3228, #14251e);
+  border: 1px solid #365748;
+  border-radius: 18px;
+  padding: 22px;
+  margin-top: 18px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+}
+
+.exercise-detail-title {
+  margin: 0 0 16px;
+  color: var(--text);
+  font-size: 1.25rem;
+  font-weight: 800;
+}
+
+.exercise-detail-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.exercise-detail-meta span {
+  display: inline-block;
+  padding: 7px 12px;
+  background: rgba(124, 240, 173, 0.12);
+  border: 1px solid rgba(124, 240, 173, 0.25);
+  border-radius: 999px;
+  color: var(--accent);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.exercise-detail-section {
+  background: rgba(255, 255, 255, 0.035);
+  border-radius: 12px;
+  padding: 15px 17px;
+  margin-top: 12px;
+}
+
+.exercise-detail-section strong {
+  display: block;
+  color: var(--accent);
+  margin-bottom: 8px;
+}
+
+.exercise-detail-section p {
+  margin: 0;
+  color: var(--text);
+  line-height: 1.65;
+}
+
+@media (max-width: 600px) {
+  .exercise-detail-card:not(:empty) {
+    padding: 16px;
+  }
+}
