@@ -95,7 +95,49 @@ document.addEventListener("DOMContentLoaded", () => {
     exerciseSelect.dispatchEvent(new Event("change"));
   });
 
-  libraryPanel.append(libraryTitle, categorySelect, exerciseSelect);
+  const searchInput = document.createElement("input");
+  searchInput.id = "training-exercise-search";
+  searchInput.type = "search";
+  searchInput.placeholder = "Rechercher un exercice...";
+  searchInput.setAttribute("aria-label", "Rechercher un exercice");
+
+  searchInput.addEventListener("input", () => {
+    exerciseSelect.replaceChildren();
+
+    const placeholder = document.createElement("option");
+    placeholder.value = "";
+    placeholder.textContent = "Choisir un exercice";
+    exerciseSelect.appendChild(placeholder);
+
+    const search = searchInput.value.trim().toLocaleLowerCase("fr");
+
+    exercises
+      .filter(exercise =>
+        (!categorySelect.value ||
+          exercise.categorie === categorySelect.value) &&
+        exercise.nom.toLocaleLowerCase("fr").includes(search)
+      )
+      .forEach(exercise => {
+        const option = document.createElement("option");
+        option.value = exercise.id;
+        option.textContent =
+          exercise.nom + " (" + exercise.duree + " min)";
+        exerciseSelect.appendChild(option);
+      });
+
+    exerciseSelect.dispatchEvent(new Event("change"));
+  });
+
+  categorySelect.addEventListener("change", () => {
+    searchInput.dispatchEvent(new Event("input"));
+  });
+
+  libraryPanel.append(
+    libraryTitle,
+    categorySelect,
+    searchInput,
+    exerciseSelect
+  );
   panel.appendChild(libraryPanel);
 
   const exerciseDetails = document.createElement("div");
